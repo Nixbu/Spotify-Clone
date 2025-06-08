@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+<!-- Song Card Fragment -->
+<div th:fragment="song-card(song)" class="card h-100 song-card">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <h6 class="card-title mb-0" th:text="${song.title}">Song Title</h6>
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                th:id="'songDropdown' + ${song.id}" data-bs-toggle="dropdown">
+          <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <ul class="dropdown-menu" th:aria-labelledby="'songDropdown' + ${song.id}">
+          <li>
+            <a class="dropdown-item" th:href="@{'/player/' + ${song.id}}">
+              <i class="fas fa-play me-2"></i>Play
+            </a>
+          </li>
+          <li>
+            <button class="dropdown-item add-to-favorites-btn"
+                    th:data-song-id="${song.id}">
+              <i class="fas fa-heart me-2"></i>Add to Favorites
+            </button>
+          </li>
+          <li>
+            <a class="dropdown-item" th:href="@{'/songs/' + ${song.id}}">
+              <i class="fas fa-info-circle me-2"></i>Details
+            </a>
+          </li>
+          <li th:if="${song.uploadedBy != null && #authentication.name == song.uploadedBy.username}">
+            <hr class="dropdown-divider">
+          </li>
+          <li th:if="${song.uploadedBy != null && #authentication.name == song.uploadedBy.username}">
+            <form th:action="@{'/songs/' + ${song.id} + '/delete'}" method="post"
+                  onsubmit="return confirm('Are you sure you want to delete this song?');">
+              <button type="submit" class="dropdown-item text-danger">
+                <i class="fas fa-trash me-2"></i>Delete
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="card-text text-muted mb-1" th:text="${song.artist}">Artist</p>
+    <p class="card-text text-muted mb-2" th:if="${song.album}" th:text="${song.album.title}">Album</p>
+    <p class="card-text text-muted mb-2" th:if="${song.genre}" th:text="${song.genre}">Genre</p>
+
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <small class="text-muted" th:if="${song.uploadedBy}"
+             th:text="'By ' + ${song.uploadedBy.username}">Uploaded by</small>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-sm btn-primary play-btn"
+                th:data-song-id="${song.id}">
+          <i class="fas fa-play"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+                th:data-song-id="${song.id}">
+          <i class="fas fa-heart"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compact Song Card Fragment -->
+<div th:fragment="song-card-compact" class="d-flex align-items-center p-2 border-bottom song-item">
+  <div class="flex-shrink-0 me-3">
+    <img th:src="${song.album != null && song.album.coverImagePath != null ? song.album.coverImagePath : '/images/default-album.png'}"
+         class="rounded" width="50" height="50" alt="Album Cover">
+  </div>
+  <div class="flex-grow-1">
+    <h6 class="mb-0" th:text="${song.title}">Song Title</h6>
+    <small class="text-muted" th:text="${song.artist}">Artist</small>
+    <small class="text-muted" th:if="${song.album}" th:text="' • ' + ${song.album.title}">Album</small>
+  </div>
+  <div class="flex-shrink-0">
+    <div class="btn-group" role="group">
+      <button type="button" class="btn btn-sm btn-outline-primary play-btn"
+              th:data-song-id="${song.id}">
+        <i class="fas fa-play"></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
+              th:data-song-id="${song.id}">
+        <i class="fas fa-heart"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Song List Item Fragment -->
+<div th:fragment="song-list-item" class="list-group-item list-group-item-action">
+  <div class="d-flex w-100 justify-content-between align-items-center">
+    <div class="flex-grow-1">
+      <h6 class="mb-1" th:text="${song.title}">Song Title</h6>
+      <p class="mb-1 text-muted" th:text="${song.artist}">Artist</p>
+      <small class="text-muted" th:if="${song.album}" th:text="${song.album.title}">Album</small>
+      <small class="text-muted" th:if="${song.genre}" th:text="' • ' + ${song.genre}">Genre</small>
+    </div>
+    <div class="flex-shrink-0">
+      <div class="btn-group" role="group">
+        <a th:href="@{'/player/' + ${song.id}}" class="btn btn-sm btn-primary">
+          <i class="fas fa-play"></i>
+        </a>
+        <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+                th:data-song-id="${song.id}">
+          <i class="fas fa-heart"></i>
+        </button>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                  th:id="'songMenu' + ${song.id}" data-bs-toggle="dropdown">
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+          <ul class="dropdown-menu" th:aria-labelledby="'songMenu' + ${song.id}">
+            <li>
+              <a class="dropdown-item" th:href="@{'/songs/' + ${song.id}}">
+                <i class="fas fa-info-circle me-2"></i>View Details
+              </a>
+            </li>
+            <li>
+              <button class="dropdown-item add-to-playlist-btn"
+                      th:data-song-id="${song.id}">
+                <i class="fas fa-plus me-2"></i>Add to Playlist
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Song Table Row Fragment -->
+<tr th:fragment="song-table-row">
+  <td>
+    <div class="d-flex align-items-center">
+      <img th:src="${song.album != null && song.album.coverImagePath != null ? song.album.coverImagePath : '/images/default-album.png'}"
+           class="rounded me-3" width="40" height="40" alt="Album Cover">
+      <div>
+        <div class="fw-bold" th:text="${song.title}">Song Title</div>
+        <small class="text-muted" th:text="${song.artist}">Artist</small>
+      </div>
+    </div>
+  </td>
+  <td th:text="${song.album != null ? song.album.title : '-'}">Album</td>
+  <td th:text="${song.genre ?: '-'}">Genre</td>
+  <td>
+    <div class="btn-group" role="group">
+      <a th:href="@{'/player/' + ${song.id}}" class="btn btn-sm btn-primary">
+        <i class="fas fa-play"></i>
+      </a>
+      <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+              th:data-song-id="${song.id}">
+        <i class="fas fa-heart"></i>
+      </button>
+    </div>
+  </td>
+</tr>
+
+<!-- JavaScript for song card interactions -->
+<script th:fragment="song-card-js">
+  document.addEventListener('DOMContentLoaded', function() {
+    // Play button functionality
+    document.querySelectorAll('.play-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const songId = this.dataset.songId;
+        window.location.href = `/player/${songId}`;
+      });
+    });
+
+    // Favorite button functionality
+    document.querySelectorAll('.favorite-btn, .add-to-favorites-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const songId = this.dataset.songId;
+        const button = this;
+
+        fetch(`/favorites/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `songId=${songId}`
+        })
+                .then(response => response.text())
+                .then(result => {
+                  if (result === 'success') {
+                    button.classList.add('btn-danger');
+                    button.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+                    button.innerHTML = '<i class="fas fa-heart"></i>';
+
+                    // Show success message
+                    showToast('Song added to favorites!', 'success');
+                  } else {
+                    showToast('Failed to add to favorites', 'error');
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                  showToast('An error occurred', 'error');
+                });
+      });
+    });
+
+    // Add to playlist functionality
+    document.querySelectorAll('.add-to-playlist-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const songId = this.dataset.songId;
+        // This would open a modal or redirect to playlist selection
+        // For now, just show a message
+        showToast('Feature coming soon!', 'info');
+      });
+    });
+  });
+
+  function showToast(message, type = 'success') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show`;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+</script>
+</body>
+</html>

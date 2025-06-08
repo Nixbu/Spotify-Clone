@@ -46,6 +46,6 @@ public class HomeController {
         model.addAttribute("totalSongs", totalSongs);
         model.addAttribute("totalAlbums", totalAlbums);
 
-        return "home";
+        return "pages/home";
     }
 }

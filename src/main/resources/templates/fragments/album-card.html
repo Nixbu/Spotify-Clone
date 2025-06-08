@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="album-card(album)" class="card h-100 album-card">
+    <div class="position-relative">
+        <img th:src="@{${album.coverImagePath ?: '/images/default-album.png'}}"
+             th:alt="${album.title}"
+             class="card-img-top"
+             style="height: 200px; object-fit: cover;">
+        <div class="card-img-overlay d-flex align-items-center justify-content-center opacity-0 hover-overlay">
+            <a th:href="@{/albums/{id}(id=${album.id})}" class="btn btn-success btn-sm">
+                <i class="bi bi-play-circle"></i> View Album
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title" th:text="${album.title}">Album Title</h5>
+        <p class="card-text text-muted mb-2" th:text="${album.artist}">Artist Name</p>
+        <p class="card-text">
+            <small class="text-muted">
+                <i class="bi bi-calendar"></i>
+                <span th:text="${#temporals.format(album.releaseDate, 'yyyy')}">2023</span>
+            </small>
+        </p>
+        <p class="card-text" th:if="${album.genre}">
+            <span class="badge bg-secondary" th:text="${album.genre}">Genre</span>
+        </p>
+    </div>
+    <div class="card-footer bg-transparent">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">
+                <i class="bi bi-music-note"></i>
+                <span th:text="${album.songs?.size() ?: 0}">0</span> songs
+            </small>
+            <a th:href="@{/albums/{id}(id=${album.id})}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-right"></i> View
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

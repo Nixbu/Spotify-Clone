@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Player - SpotifyClone</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+<!-- Include navbar -->
+<div th:replace="layout/navbar :: navbar"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Player Section -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4><i class="fas fa-music me-2"></i>Music Player</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Current Song Display -->
+                    <div class="current-song-info mb-4" th:if="${currentSong}">
+                        <div class="row align-items-center">
+                            <div class="col-md-3">
+                                <img th:src="${currentSong.album != null && currentSong.album.coverImagePath != null ? currentSong.album.coverImagePath : '/images/default-album.png'}"
+                                     class="img-fluid rounded" alt="Album Cover" style="max-height: 200px;">
+                            </div>
+                            <div class="col-md-9">
+                                <h3 th:text="${currentSong.title}">Song Title</h3>
+                                <h5 class="text-muted" th:text="${currentSong.artist}">Artist</h5>
+                                <p class="text-muted" th:if="${currentSong.album}" th:text="${currentSong.album.title}">Album</p>
+                                <p class="text-muted" th:if="${currentSong.genre}" th:text="${currentSong.genre}">Genre</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audio Player -->
+                    <div class="audio-player mb-4">
+                        <audio id="audioPlayer" controls class="w-100"
+                               th:if="${currentSong}"
+                               th:src="@{'/songs/' + ${currentSong.id} + '/stream'}"
+                               preload="metadata">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <div th:unless="${currentSong}" class="text-center text-muted py-4">
+                            <i class="fas fa-music fa-3x mb-3"></i>
+                            <p>Select a song to start playing</p>
+                        </div>
+                    </div>
+
+                    <!-- Player Controls -->
+                    <div class="player-controls text-center mb-4">
+                        <button id="prevBtn" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-step-backward"></i>
+                        </button>
+                        <button id="playPauseBtn" class="btn btn-primary me-2">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="nextBtn" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-step-forward"></i>
+                        </button>
+                        <button id="repeatBtn" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                        <button id="shuffleBtn" class="btn btn-outline-secondary">
+                            <i class="fas fa-random"></i>
+                        </button>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress mb-3">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Time Display -->
+                    <div class="d-flex justify-content-between text-muted">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Playlist/Queue Section -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-list me-2"></i>Queue</h5>
+                    <small class="text-muted" th:text="${#lists.size(songs)} + ' songs'">0 songs</small>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto;">
+                        <div th:each="song, iterStat : ${songs}"
+                             class="list-group-item list-group-item-action song-item"
+                             th:data-song-id="${song.id}"
+                             th:classappend="${currentSong != null && song.id == currentSong.id} ? 'active' : ''">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 me-3">
+                                    <span class="badge bg-secondary" th:text="${iterStat.index + 1}">1</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold" th:text="${song.title}">Song Title</div>
+                                    <small class="text-muted" th:text="${song.artist}">Artist</small>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <button class="btn btn-sm btn-outline-primary play-song-btn"
+                                            th:data-song-id="${song.id}"
+                                            th:data-song-url="@{'/songs/' + ${song.id} + '/stream'}">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Player JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const audioPlayer = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const repeatBtn = document.getElementById('repeatBtn');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+        const progressBar = document.getElementById('progressBar');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const totalTimeSpan = document.getElementById('totalTime');
+        const songItems = document.querySelectorAll('.song-item');
+        const playSongBtns = document.querySelectorAll('.play-song-btn');
+
+        let currentSongIndex = 0;
+        let isShuffleOn = false;
+        let isRepeatOn = false;
+        let songs = [];
+
+        // Initialize songs array
+        songItems.forEach((item, index) => {
+            const songId = item.dataset.songId;
+            const playBtn = item.querySelector('.play-song-btn');
+            const songUrl = playBtn.dataset.songUrl;
+            const title = item.querySelector('.fw-bold').textContent;
+            const artist = item.querySelector('.text-muted').textContent;
+
+            songs.push({
+                id: songId,
+                url: songUrl,
+                title: title,
+                artist: artist,
+                element: item
+            });
+
+            if (item.classList.contains('active')) {
+                currentSongIndex = index;
+            }
+        });
+
+        // Play/Pause functionality
+        if (playPauseBtn && audioPlayer) {
+            playPauseBtn.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                } else {
+                    audioPlayer.pause();
+                }
+            });
+
+            audioPlayer.addEventListener('play', function() {
+                playPauseBtn.querySelector('i').className = 'fas fa-pause';
+            });
+
+            audioPlayer.addEventListener('pause', function() {
+                playPauseBtn.querySelector('i').className = 'fas fa-play';
+            });
+        }
+
+        // Time update
+        if (audioPlayer) {
+            audioPlayer.addEventListener('timeupdate', function() {
+                if (audioPlayer.duration) {
+                    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    progressBar.style.width = progress + '%';
+
+                    currentTimeSpan.textContent = formatTime(audioPlayer.currentTime);
+                    totalTimeSpan.textContent = formatTime(audioPlayer.duration);
+                }
+            });
+
+            audioPlayer.addEventListener('ended', function() {
+                if (isRepeatOn) {
+                    audioPlayer.currentTime = 0;
+                    audioPlayer.play();
+                } else {
+                    nextSong();
+                }
+            });
+        }
+
+        // Previous song
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                prevSong();
+            });
+        }
+
+        // Next song
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                nextSong();
+            });
+        }
+
+        // Repeat toggle
+        if (repeatBtn) {
+            repeatBtn.addEventListener('click', function() {
+                isRepeatOn = !isRepeatOn;
+                repeatBtn.classList.toggle('btn-outline-secondary', !isRepeatOn);
+                repeatBtn.classList.toggle('btn-secondary', isRepeatOn);
+            });
+        }
+
+        // Shuffle toggle
+        if (shuffleBtn) {
+            shuffleBtn.addEventListener('click', function() {
+                isShuffleOn = !isShuffleOn;
+                shuffleBtn.classList.toggle('btn-outline-secondary', !isShuffleOn);
+                shuffleBtn.classList.toggle('btn-secondary', isShuffleOn);
+            });
+        }
+
+        // Play song buttons
+        playSongBtns.forEach((btn, index) => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                playSong(index);
+            });
+        });
+
+        // Song item click
+        songItems.forEach((item, index) => {
+            item.addEventListener('click', function() {
+                playSong(index);
+            });
+        });
+
+        function playSong(index) {
+            if (songs[index] && audioPlayer) {
+                currentSongIndex = index;
+                audioPlayer.src = songs[index].url;
+                audioPlayer.load();
+                audioPlayer.play();
+
+                // Update active state
+                songItems.forEach(item => item.classList.remove('active'));
+                songs[index].element.classList.add('active');
+
+                // Update URL
+                window.history.pushState({}, '', `/player/${songs[index].id}`);
+            }
+        }
+
+        function nextSong() {
+            let nextIndex;
+            if (isShuffleOn) {
+                nextIndex = Math.floor(Math.random() * songs.length);
+            } else {
+                nextIndex = (currentSongIndex + 1) % songs.length;
+            }
+            playSong(nextIndex);
+        }
+
+        function prevSong() {
+            let prevIndex;
+            if (isShuffleOn) {
+                prevIndex = Math.floor(Math.random() * songs.length);
+            } else {
+                prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+            }
+            playSong(prevIndex);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
+        // Progress bar click
+        if (progressBar && audioPlayer) {
+            progressBar.parentElement.addEventListener('click', function(e) {
+                if (audioPlayer.duration) {
+                    const rect = this.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    audioPlayer.currentTime = percent * audioPlayer.duration;
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
