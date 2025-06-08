@@ -3,8 +3,8 @@
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-spotify">
     <div class="container-fluid">
-        <!-- Brand -->
-        <a class="navbar-brand fw-bold" th:href="@{/static}">
+        <!-- Brand - Changed from /static to / or /home -->
+        <a class="navbar-brand fw-bold" th:href="@{/}">
             <i class="fab fa-spotify me-2"></i>
             Spotify Clone
         </a>
@@ -35,7 +35,8 @@
                 <!-- Guest Links -->
                 <div sec:authorize="!isAuthenticated()">
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/static}">
+                        <!-- Changed from /static to / -->
+                        <a class="nav-link" th:href="@{/}">
                             <i class="fas fa-home me-1"></i> Home
                         </a>
                     </li>
@@ -53,6 +54,13 @@
 
                 <!-- Authenticated User Links -->
                 <div sec:authorize="isAuthenticated()">
+                    <!-- Add Home link for authenticated users too -->
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
+                    </li>
+
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-music me-1"></i> Music
@@ -93,7 +101,7 @@
                             <i class="fas fa-heart me-1"></i> Favorites
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                                   th:if="${favoriteCount > 0}" th:text="${favoriteCount}">
-                                </span>
+                            </span>
                         </a>
                     </li>
 
