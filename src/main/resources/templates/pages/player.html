@@ -11,7 +11,6 @@
 <body>
 <!-- Include navbar -->
 <div th:replace="layout/navbar :: navbar"></div>
-
 <div class="container-fluid">
     <div class="row">
         <!-- Player Section -->
@@ -22,34 +21,34 @@
                 </div>
                 <div class="card-body">
                     <!-- Current Song Display -->
-                    <div class="current-song-info mb-4" th:if="${currentSong}">
+                    <div class="current-song-info mb-4" id="currentSongInfo" th:style="${currentSong == null ? 'display: none;' : ''}">
                         <div class="row align-items-center">
                             <div class="col-md-3">
-                                <img th:src="${currentSong.album != null && currentSong.album.coverImagePath != null ? currentSong.album.coverImagePath : '/images/default-album.png'}"
+                                <img id="currentSongImage"
+                                     th:src="${currentSong != null && currentSong.album != null && currentSong.album.coverImagePath != null ? currentSong.album.coverImagePath : '/images/default-album.png'}"
                                      class="img-fluid rounded" alt="Album Cover" style="max-height: 200px;">
                             </div>
                             <div class="col-md-9">
-                                <h3 th:text="${currentSong.title}">Song Title</h3>
-                                <h5 class="text-muted" th:text="${currentSong.artist}">Artist</h5>
-                                <p class="text-muted" th:if="${currentSong.album}" th:text="${currentSong.album.title}">Album</p>
-                                <p class="text-muted" th:if="${currentSong.genre}" th:text="${currentSong.genre}">Genre</p>
+                                <h3 id="currentSongTitle" th:text="${currentSong != null ? currentSong.title : ''}">Song Title</h3>
+                                <h5 class="text-muted" id="currentSongArtist" th:text="${currentSong != null ? currentSong.artist : ''}">Artist</h5>
+                                <p class="text-muted" id="currentSongAlbum" th:if="${currentSong != null && currentSong.album}" th:text="${currentSong.album.title}">Album</p>
+                                <p class="text-muted" id="currentSongGenre" th:if="${currentSong != null && currentSong.genre}" th:text="${currentSong.genre}">Genre</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Audio Player -->
-                    <div class="audio-player mb-4">
-                        <audio id="audioPlayer" controls class="w-100"
-                               th:if="${currentSong}"
-                               th:src="@{'/songs/' + ${currentSong.id} + '/stream'}"
-                               preload="metadata">
-                            Your browser does not support the audio element.
-                        </audio>
-                        <div th:unless="${currentSong}" class="text-center text-muted py-4">
-                            <i class="fas fa-music fa-3x mb-3"></i>
-                            <p>Select a song to start playing</p>
-                        </div>
+                    <!-- No Song Selected Message -->
+                    <div id="noSongMessage" class="text-center text-muted py-4" th:style="${currentSong != null ? 'display: none;' : ''}">
+                        <i class="fas fa-music fa-3x mb-3"></i>
+                        <p>Select a song to start playing</p>
                     </div>
+
+                    <!-- Hidden Audio Player - Always present -->
+                    <audio id="audioPlayer"
+                           th:src="${currentSong != null ? '/songs/' + currentSong.id + '/stream' : ''}"
+                           preload="metadata" style="display: none;">
+                        Your browser does not support the audio element.
+                    </audio>
 
                     <!-- Player Controls -->
                     <div class="player-controls text-center mb-4">
@@ -70,11 +69,50 @@
                         </button>
                     </div>
 
+                    <!-- Additional Controls Row -->
+                    <div class="additional-controls row mb-4">
+                        <!-- Volume Control -->
+                        <div class="col-md-4 mb-3">
+                            <label for="volumeControl" class="form-label d-flex align-items-center">
+                                <i class="fas fa-volume-up me-2"></i>Volume
+                            </label>
+                            <div class="d-flex align-items-center">
+                                <input type="range" class="form-range me-2" id="volumeControl"
+                                       min="0" max="1" step="0.01" value="1">
+                                <span id="volumeDisplay" class="text-muted small">100%</span>
+                            </div>
+                        </div>
+
+                        <!-- Playback Speed Control -->
+                        <div class="col-md-4 mb-3">
+                            <label for="speedControl" class="form-label d-flex align-items-center">
+                                <i class="fas fa-tachometer-alt me-2"></i>Speed
+                            </label>
+                            <div class="d-flex align-items-center">
+                                <select class="form-select me-2" id="speedControl">
+                                    <option value="0.25">0.25x</option>
+                                    <option value="0.5">0.5x</option>
+                                    <option value="0.75">0.75x</option>
+                                    <option value="1" selected>1x</option>
+                                    <option value="1.25">1.25x</option>
+                                    <option value="1.5">1.5x</option>
+                                    <option value="1.75">1.75x</option>
+                                    <option value="2">2x</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Mute Button -->
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <button id="muteBtn" class="btn btn-outline-secondary">
+                                <i class="fas fa-volume-up"></i>
+                            </button>
+                        </div>
+                    </div>
                     <!-- Progress Bar -->
                     <div class="progress mb-3">
                         <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
                     </div>
-
                     <!-- Time Display -->
                     <div class="d-flex justify-content-between text-muted">
                         <span id="currentTime">0:00</span>
@@ -83,7 +121,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Playlist/Queue Section -->
         <div class="col-lg-4">
             <div class="card">
@@ -108,7 +145,9 @@
                                 <div class="flex-shrink-0">
                                     <button class="btn btn-sm btn-outline-primary play-song-btn"
                                             th:data-song-id="${song.id}"
-                                            th:data-song-url="@{'/songs/' + ${song.id} + '/stream'}">
+                                            th:data-song-url="@{'/songs/' + ${song.id} + '/stream'}"
+                                            th:data-song-title="${song.title}"
+                                            th:data-song-artist="${song.artist}">
                                         <i class="fas fa-play"></i>
                                     </button>
                                 </div>
@@ -120,10 +159,8 @@
         </div>
     </div>
 </div>
-
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <!-- Player JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -139,9 +176,22 @@
         const songItems = document.querySelectorAll('.song-item');
         const playSongBtns = document.querySelectorAll('.play-song-btn');
 
-        let currentSongIndex = 0;
+        // UI elements for current song display
+        const currentSongInfo = document.getElementById('currentSongInfo');
+        const noSongMessage = document.getElementById('noSongMessage');
+        const currentSongTitle = document.getElementById('currentSongTitle');
+        const currentSongArtist = document.getElementById('currentSongArtist');
+        const currentSongImage = document.getElementById('currentSongImage');
+        const volumeControl = document.getElementById('volumeControl');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        const speedControl = document.getElementById('speedControl');
+        const muteBtn = document.getElementById('muteBtn');
+
+        let currentSongIndex = -1; // Start with no song selected
         let isShuffleOn = false;
         let isRepeatOn = false;
+        let isMuted = false;
+        let previousVolume = 1;
         let songs = [];
 
         // Initialize songs array
@@ -149,8 +199,8 @@
             const songId = item.dataset.songId;
             const playBtn = item.querySelector('.play-song-btn');
             const songUrl = playBtn.dataset.songUrl;
-            const title = item.querySelector('.fw-bold').textContent;
-            const artist = item.querySelector('.text-muted').textContent;
+            const title = playBtn.dataset.songTitle || item.querySelector('.fw-bold').textContent;
+            const artist = playBtn.dataset.songArtist || item.querySelector('.text-muted').textContent;
 
             songs.push({
                 id: songId,
@@ -168,6 +218,14 @@
         // Play/Pause functionality
         if (playPauseBtn && audioPlayer) {
             playPauseBtn.addEventListener('click', function() {
+                // If no song is loaded, play the first song
+                if (!audioPlayer.src || audioPlayer.src === window.location.href) {
+                    if (songs.length > 0) {
+                        playSong(0);
+                        return;
+                    }
+                }
+
                 if (audioPlayer.paused) {
                     audioPlayer.play();
                 } else {
@@ -190,7 +248,6 @@
                 if (audioPlayer.duration) {
                     const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
                     progressBar.style.width = progress + '%';
-
                     currentTimeSpan.textContent = formatTime(audioPlayer.currentTime);
                     totalTimeSpan.textContent = formatTime(audioPlayer.duration);
                 }
@@ -238,6 +295,61 @@
             });
         }
 
+        // Volume Control
+        if (volumeControl && audioPlayer) {
+            volumeControl.addEventListener('input', function() {
+                const volume = parseFloat(this.value);
+                audioPlayer.volume = volume;
+                volumeDisplay.textContent = Math.round(volume * 100) + '%';
+
+                // Update mute button icon based on volume
+                updateVolumeIcon(volume);
+
+                if (volume > 0 && isMuted) {
+                    isMuted = false;
+                }
+            });
+        }
+
+        // Speed Control
+        if (speedControl && audioPlayer) {
+            speedControl.addEventListener('change', function() {
+                audioPlayer.playbackRate = parseFloat(this.value);
+            });
+        }
+
+        // Mute Toggle
+        if (muteBtn && audioPlayer) {
+            muteBtn.addEventListener('click', function() {
+                if (isMuted) {
+                    // Unmute
+                    audioPlayer.volume = previousVolume;
+                    volumeControl.value = previousVolume;
+                    volumeDisplay.textContent = Math.round(previousVolume * 100) + '%';
+                    isMuted = false;
+                } else {
+                    // Mute
+                    previousVolume = audioPlayer.volume;
+                    audioPlayer.volume = 0;
+                    volumeControl.value = 0;
+                    volumeDisplay.textContent = '0%';
+                    isMuted = true;
+                }
+                updateVolumeIcon(audioPlayer.volume);
+            });
+        }
+
+        function updateVolumeIcon(volume) {
+            const icon = muteBtn.querySelector('i');
+            if (volume === 0) {
+                icon.className = 'fas fa-volume-mute';
+            } else if (volume < 0.5) {
+                icon.className = 'fas fa-volume-down';
+            } else {
+                icon.className = 'fas fa-volume-up';
+            }
+        }
+
         // Play song buttons
         playSongBtns.forEach((btn, index) => {
             btn.addEventListener('click', function(e) {
@@ -256,22 +368,50 @@
         function playSong(index) {
             if (songs[index] && audioPlayer) {
                 currentSongIndex = index;
-                audioPlayer.src = songs[index].url;
+                const song = songs[index];
+
+                // Update audio player
+                audioPlayer.src = song.url;
                 audioPlayer.load();
+
+                // Restore volume and speed settings after loading
+                audioPlayer.addEventListener('loadeddata', function() {
+                    audioPlayer.volume = parseFloat(volumeControl.value);
+                    audioPlayer.playbackRate = parseFloat(speedControl.value);
+                }, { once: true });
+
                 audioPlayer.play();
 
-                // Update active state
+                // Update current song display
+                updateCurrentSongDisplay(song);
+
+                // Update active state in queue
                 songItems.forEach(item => item.classList.remove('active'));
-                songs[index].element.classList.add('active');
+                song.element.classList.add('active');
 
                 // Update URL
-                window.history.pushState({}, '', `/player/${songs[index].id}`);
+                window.history.pushState({}, '', `/player/${song.id}`);
             }
         }
 
+        function updateCurrentSongDisplay(song) {
+            // Hide "no song" message and show current song info
+            if (noSongMessage) noSongMessage.style.display = 'none';
+            if (currentSongInfo) currentSongInfo.style.display = 'block';
+
+            // Update song details
+            if (currentSongTitle) currentSongTitle.textContent = song.title;
+            if (currentSongArtist) currentSongArtist.textContent = song.artist;
+            if (currentSongImage) currentSongImage.src = '/images/default-album.png'; // You might want to add album data to songs array
+        }
+
         function nextSong() {
+            if (songs.length === 0) return;
+
             let nextIndex;
-            if (isShuffleOn) {
+            if (currentSongIndex === -1) {
+                nextIndex = 0;
+            } else if (isShuffleOn) {
                 nextIndex = Math.floor(Math.random() * songs.length);
             } else {
                 nextIndex = (currentSongIndex + 1) % songs.length;
@@ -280,8 +420,12 @@
         }
 
         function prevSong() {
+            if (songs.length === 0) return;
+
             let prevIndex;
-            if (isShuffleOn) {
+            if (currentSongIndex === -1) {
+                prevIndex = 0;
+            } else if (isShuffleOn) {
                 prevIndex = Math.floor(Math.random() * songs.length);
             } else {
                 prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
