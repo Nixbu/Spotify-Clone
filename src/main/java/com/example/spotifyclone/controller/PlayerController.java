@@ -40,8 +40,9 @@ public class PlayerController {
         Song currentSong = songOpt.get();
         List<Song> allSongs = songService.findAllSongsOrderByIdDesc();
 
-        model.addAttribute("currentSong", currentSong);
         model.addAttribute("songs", allSongs);
+        model.addAttribute("currentSong", currentSong);
+
         return "pages/player";
     }
 }

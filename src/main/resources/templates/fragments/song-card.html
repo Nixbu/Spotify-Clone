@@ -180,29 +180,33 @@
         const songId = this.dataset.songId;
         const button = this;
 
-        fetch(`/favorites/add`, {
+        fetch(`/api/favorites/${songId}`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `songId=${songId}`
+            'Content-Type': 'application/json',
+            // Add CSRF token if you're using Spring Security CSRF protection
+            'X-Requested-With': 'XMLHttpRequest'
+          }
         })
-                .then(response => response.text())
-                .then(result => {
-                  if (result === 'success') {
-                    button.classList.add('btn-danger');
-                    button.classList.remove('btn-outline-primary', 'btn-outline-secondary');
-                    button.innerHTML = '<i class="fas fa-heart"></i>';
-
-                    // Show success message
-                    showToast('Song added to favorites!', 'success');
-                  } else {
-                    showToast('Failed to add to favorites', 'error');
+                .then(response => {
+                  if (response.ok) {
+                    return response.text();
                   }
+                  throw new Error('Network response was not ok');
+                })
+                .then(result => {
+                  console.log('Success:', result);
+                  // Update button appearance
+                  button.classList.add('btn-danger');
+                  button.classList.remove('btn-outline-primary', 'btn-outline-secondary');
+                  button.innerHTML = '<i class="fas fa-heart"></i>';
+
+                  // Show success message
+                  showToast('Song added to favorites!', 'success');
                 })
                 .catch(error => {
                   console.error('Error:', error);
-                  showToast('An error occurred', 'error');
+                  showToast('Failed to add to favorites', 'error');
                 });
       });
     });

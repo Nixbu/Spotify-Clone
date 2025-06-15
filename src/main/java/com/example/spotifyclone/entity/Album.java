@@ -2,6 +2,8 @@ package com.example.spotifyclone.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +23,19 @@ public class Album {
     @Column(nullable = false)
     private String artist;
 
+    // Add genre field to match the form
+    private String genre;
+
+    // Add release year field to match the form
+    @Min(value = 1900, message = "Release year must be at least 1900")
+    @Max(value = 2030, message = "Release year cannot be later than 2030")
+    @Column(name = "release_year")
+    private Integer releaseYear;
+
+    // Add description field to match the form
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(name = "release_date")
     private LocalDate releaseDate;
 
@@ -33,12 +48,18 @@ public class Album {
     // Default constructor
     public Album() {}
 
-    // Constructor
-    public Album(String title, String artist, LocalDate releaseDate, String coverImagePath) {
+    // Updated constructor
+    public Album(String title, String artist, String genre, Integer releaseYear, String description, String coverImagePath) {
         this.title = title;
         this.artist = artist;
-        this.releaseDate = releaseDate;
+        this.genre = genre;
+        this.releaseYear = releaseYear;
+        this.description = description;
         this.coverImagePath = coverImagePath;
+        // Set release date based on release year if provided
+        if (releaseYear != null) {
+            this.releaseDate = LocalDate.of(releaseYear, 1, 1);
+        }
     }
 
     // Getters and Setters
@@ -50,6 +71,21 @@ public class Album {
 
     public String getArtist() { return artist; }
     public void setArtist(String artist) { this.artist = artist; }
+
+    public String getGenre() { return genre; }
+    public void setGenre(String genre) { this.genre = genre; }
+
+    public Integer getReleaseYear() { return releaseYear; }
+    public void setReleaseYear(Integer releaseYear) {
+        this.releaseYear = releaseYear;
+        // Automatically update release date when release year is set
+        if (releaseYear != null) {
+            this.releaseDate = LocalDate.of(releaseYear, 1, 1);
+        }
+    }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
     public LocalDate getReleaseDate() { return releaseDate; }
     public void setReleaseDate(LocalDate releaseDate) { this.releaseDate = releaseDate; }
@@ -73,5 +109,19 @@ public class Album {
 
     public int getSongCount() {
         return songs.size();
+    }
+
+    // Override toString for debugging
+    @Override
+    public String toString() {
+        return "Album{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", artist='" + artist + '\'' +
+                ", genre='" + genre + '\'' +
+                ", releaseYear=" + releaseYear +
+                ", description='" + description + '\'' +
+                ", coverImagePath='" + coverImagePath + '\'' +
+                '}';
     }
 }
