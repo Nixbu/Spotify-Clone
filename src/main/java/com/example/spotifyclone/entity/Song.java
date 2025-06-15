@@ -2,6 +2,7 @@ package com.example.spotifyclone.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,9 @@ public class Song {
 
     private Integer duration; // Duration in seconds
 
+    @Column(name = "upload_date")
+    private LocalDate uploadDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "album_id")
     private Album album;
@@ -51,6 +55,14 @@ public class Song {
         this.genre = genre;
         this.filePath = filePath;
         this.uploadedBy = uploadedBy;
+        this.uploadDate = LocalDate.now(); // Optional: default upload date at construction
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (uploadDate == null) {
+            uploadDate = LocalDate.now();
+        }
     }
 
     // Getters and Setters
@@ -71,6 +83,9 @@ public class Song {
 
     public Integer getDuration() { return duration; }
     public void setDuration(Integer duration) { this.duration = duration; }
+
+    public LocalDate getUploadDate() { return uploadDate; }
+    public void setUploadDate(LocalDate uploadDate) { this.uploadDate = uploadDate; }
 
     public Album getAlbum() { return album; }
     public void setAlbum(Album album) { this.album = album; }
