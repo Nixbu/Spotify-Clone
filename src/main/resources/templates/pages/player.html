@@ -31,8 +31,8 @@
                             <div class="col-md-9">
                                 <h3 id="currentSongTitle" th:text="${currentSong != null ? currentSong.title : ''}">Song Title</h3>
                                 <h5 class="text-muted" id="currentSongArtist" th:text="${currentSong != null ? currentSong.artist : ''}">Artist</h5>
-                                <p class="text-muted" id="currentSongAlbum" th:if="${currentSong != null && currentSong.album}" th:text="${currentSong.album.title}">Album</p>
-                                <p class="text-muted" id="currentSongGenre" th:if="${currentSong != null && currentSong.genre}" th:text="${currentSong.genre}">Genre</p>
+                                <p class="text-muted" id="currentSongAlbum" th:if="${currentSong != null and currentSong.album != null}" th:text="${currentSong.album.title}">Album</p>
+                                <p class="text-muted" id="currentSongGenre" th:if="${currentSong != null and currentSong.genre != null}" th:text="${currentSong.genre}">Genre</p>
                             </div>
                         </div>
                     </div>
