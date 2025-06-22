@@ -9,18 +9,15 @@
     <link th:href="@{/css/style.css}" rel="stylesheet">
 </head>
 <body>
-<!-- Include navbar -->
 <div th:replace="layout/navbar :: navbar"></div>
 <div class="container-fluid">
     <div class="row">
-        <!-- Player Section -->
         <div class="col-lg-8">
             <div class="card mb-4">
                 <div class="card-header">
                     <h4><i class="fas fa-music me-2"></i>Music Player</h4>
                 </div>
                 <div class="card-body">
-                    <!-- Current Song Display -->
                     <div class="current-song-info mb-4" id="currentSongInfo" th:style="${currentSong == null ? 'display: none;' : ''}">
                         <div class="row align-items-center">
                             <div class="col-md-3">
@@ -37,20 +34,17 @@
                         </div>
                     </div>
 
-                    <!-- No Song Selected Message -->
                     <div id="noSongMessage" class="text-center text-muted py-4" th:style="${currentSong != null ? 'display: none;' : ''}">
                         <i class="fas fa-music fa-3x mb-3"></i>
                         <p>Select a song to start playing</p>
                     </div>
 
-                    <!-- Hidden Audio Player - Always present -->
                     <audio id="audioPlayer"
                            th:src="${currentSong != null ? '/songs/' + currentSong.id + '/stream' : ''}"
                            preload="metadata" style="display: none;">
                         Your browser does not support the audio element.
                     </audio>
 
-                    <!-- Player Controls -->
                     <div class="player-controls text-center mb-4">
                         <button id="prevBtn" class="btn btn-outline-primary me-2">
                             <i class="fas fa-step-backward"></i>
@@ -69,9 +63,7 @@
                         </button>
                     </div>
 
-                    <!-- Additional Controls Row -->
                     <div class="additional-controls row mb-4">
-                        <!-- Volume Control -->
                         <div class="col-md-4 mb-3">
                             <label for="volumeControl" class="form-label d-flex align-items-center">
                                 <i class="fas fa-volume-up me-2"></i>Volume
@@ -83,7 +75,6 @@
                             </div>
                         </div>
 
-                        <!-- Playback Speed Control -->
                         <div class="col-md-4 mb-3">
                             <label for="speedControl" class="form-label d-flex align-items-center">
                                 <i class="fas fa-tachometer-alt me-2"></i>Speed
@@ -102,18 +93,15 @@
                             </div>
                         </div>
 
-                        <!-- Mute Button -->
                         <div class="col-md-4 mb-3 d-flex align-items-end">
                             <button id="muteBtn" class="btn btn-outline-secondary">
                                 <i class="fas fa-volume-up"></i>
                             </button>
                         </div>
                     </div>
-                    <!-- Progress Bar -->
                     <div class="progress mb-3">
                         <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
                     </div>
-                    <!-- Time Display -->
                     <div class="d-flex justify-content-between text-muted">
                         <span id="currentTime">0:00</span>
                         <span id="totalTime">0:00</span>
@@ -121,7 +109,6 @@
                 </div>
             </div>
         </div>
-        <!-- Playlist/Queue Section -->
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -147,7 +134,8 @@
                                             th:data-song-id="${song.id}"
                                             th:data-song-url="@{'/songs/' + ${song.id} + '/stream'}"
                                             th:data-song-title="${song.title}"
-                                            th:data-song-artist="${song.artist}">
+                                            th:data-song-artist="${song.artist}"
+                                            th:data-song-cover="${song.album?.coverImagePath != null ? song.album.coverImagePath : '/images/default-album.png'}">
                                         <i class="fas fa-play"></i>
                                     </button>
                                 </div>
@@ -159,9 +147,7 @@
         </div>
     </div>
 </div>
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Player JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const audioPlayer = document.getElementById('audioPlayer');
@@ -201,12 +187,14 @@
             const songUrl = playBtn.dataset.songUrl;
             const title = playBtn.dataset.songTitle || item.querySelector('.fw-bold').textContent;
             const artist = playBtn.dataset.songArtist || item.querySelector('.text-muted').textContent;
+            const cover = playBtn.dataset.songCover;
 
             songs.push({
                 id: songId,
                 url: songUrl,
                 title: title,
                 artist: artist,
+                cover: cover,
                 element: item
             });
 
@@ -413,7 +401,13 @@
                 song.element.classList.add('active');
 
                 // Update URL
-                window.history.pushState({}, '', `/player/${song.id}`);
+                const urlParams = new URLSearchParams(window.location.search);
+                const albumId = urlParams.get('albumId');
+                let newUrl = `/player/${song.id}`;
+                if (albumId) {
+                    newUrl += `?albumId=${albumId}`;
+                }
+                window.history.pushState({}, '', newUrl);
             }
         }
 
@@ -425,7 +419,7 @@
             // Update song details
             if (currentSongTitle) currentSongTitle.textContent = song.title;
             if (currentSongArtist) currentSongArtist.textContent = song.artist;
-            if (currentSongImage) currentSongImage.src = '/images/default-album.png'; // You might want to add album data to songs array
+            if (currentSongImage) currentSongImage.src = song.cover || '/images/default-album.png';
         }
 
         function nextSong() {
@@ -435,7 +429,11 @@
             if (currentSongIndex === -1) {
                 nextIndex = 0;
             } else if (isShuffleOn) {
-                nextIndex = Math.floor(Math.random() * songs.length);
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * songs.length);
+                } while (songs.length > 1 && randomIndex === currentSongIndex);
+                nextIndex = randomIndex;
             } else {
                 nextIndex = (currentSongIndex + 1) % songs.length;
             }
@@ -449,7 +447,11 @@
             if (currentSongIndex === -1) {
                 prevIndex = 0;
             } else if (isShuffleOn) {
-                prevIndex = Math.floor(Math.random() * songs.length);
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * songs.length);
+                } while (songs.length > 1 && randomIndex === currentSongIndex);
+                prevIndex = randomIndex;
             } else {
                 prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
             }
@@ -464,7 +466,8 @@
 
         // Progress bar click
         if (progressBar && audioPlayer) {
-            progressBar.parentElement.addEventListener('click', function(e) {
+            const progressContainer = progressBar.parentElement;
+            progressContainer.addEventListener('click', function(e) {
                 if (audioPlayer.duration) {
                     const rect = this.getBoundingClientRect();
                     const percent = (e.clientX - rect.left) / rect.width;
