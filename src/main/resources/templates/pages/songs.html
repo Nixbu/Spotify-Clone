@@ -75,7 +75,6 @@
                                 <th>Artist</th>
                                 <th>Album</th>
                                 <th>Genre</th>
-                                <th>Duration</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -93,7 +92,6 @@
                                     <span th:unless="${song.album}" class="text-muted">-</span>
                                 </td>
                                 <td th:text="${song.genre}"></td>
-                                <td th:text="${song.duration}"></td>
                                 <td>
                                     <div class="btn-group" role="group">
                                         <a th:href="@{/player/{id}(id=${song.id})}" class="btn btn-sm btn-primary">Play</a>
@@ -137,30 +135,26 @@
             <form th:action="@{/songs/upload}" method="post" enctype="multipart/form-data" th:object="${song}">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title *</label>
+                        <label class="form-label">Title *</label>
                         <input type="text" class="form-control" th:field="*{title}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="artist" class="form-label">Artist *</label>
+                        <label class="form-label">Artist *</label>
                         <input type="text" class="form-control" th:field="*{artist}" required>
                     </div>
                     <div class="mb-3">
-                        <label for="albumId" class="form-label">Album</label>
+                        <label class="form-label">Album</label>
                         <select name="albumId" class="form-select">
                             <option value="">Select Album (Optional)</option>
                             <option th:each="album : ${albums}" th:value="${album.id}" th:text="${album.title}"></option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="genre" class="form-label">Genre</label>
+                        <label class="form-label">Genre</label>
                         <input type="text" class="form-control" th:field="*{genre}">
                     </div>
                     <div class="mb-3">
-                        <label for="duration" class="form-label">Duration</label>
-                        <input type="text" class="form-control" th:field="*{duration}" placeholder="e.g., 3:45">
-                    </div>
-                    <div class="mb-3">
-                        <label for="file" class="form-label">MP3 File *</label>
+                        <label class="form-label">MP3 File *</label>
                         <input type="file" class="form-control" name="file" accept=".mp3" required>
                     </div>
                 </div>
