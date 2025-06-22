@@ -83,10 +83,16 @@ public class SongService {
         return songRepository.save(song);
     }
 
+    @Transactional
     public void deleteSong(Long id) {
         Optional<Song> songOpt = songRepository.findById(id);
         if (songOpt.isPresent()) {
             Song song = songOpt.get();
+
+            // Force loading of lazy relationships to ensure @PreRemove works
+            song.getFavoriteByUsers().size();
+            song.getPlaylists().size();
+
             // Delete the file from filesystem
             try {
                 Path filePath = Paths.get(song.getFilePath());
@@ -95,7 +101,9 @@ public class SongService {
                 // Log error but continue with database deletion
                 System.err.println("Failed to delete file: " + song.getFilePath());
             }
-            songRepository.deleteById(id);
+
+            // The @PreRemove method will handle relationship cleanup
+            songRepository.delete(song);
         }
     }
 

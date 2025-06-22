@@ -2,6 +2,9 @@ package com.example.spotifyclone.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,10 +42,13 @@ public class Song {
     @JoinColumn(name = "uploaded_by_id", nullable = false)
     private User uploadedBy;
 
+    // Use @OnDelete to handle cascade deletion at the database level
     @ManyToMany(mappedBy = "songs", fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Playlist> playlists = new HashSet<>();
 
     @ManyToMany(mappedBy = "favoriteSongs", fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<User> favoriteByUsers = new HashSet<>();
 
     // Default constructor
@@ -55,7 +61,7 @@ public class Song {
         this.genre = genre;
         this.filePath = filePath;
         this.uploadedBy = uploadedBy;
-        this.uploadDate = LocalDate.now(); // Optional: default upload date at construction
+        this.uploadDate = LocalDate.now();
     }
 
     @PrePersist
@@ -63,6 +69,22 @@ public class Song {
         if (uploadDate == null) {
             uploadDate = LocalDate.now();
         }
+    }
+
+    // Before deletion, clean up relationships
+    @PreRemove
+    private void removeAssociations() {
+        // Remove from all users' favorites
+        for (User user : favoriteByUsers) {
+            user.getFavoriteSongs().remove(this);
+        }
+        favoriteByUsers.clear();
+
+        // Remove from all playlists
+        for (Playlist playlist : playlists) {
+            playlist.getSongs().remove(this);
+        }
+        playlists.clear();
     }
 
     // Getters and Setters
