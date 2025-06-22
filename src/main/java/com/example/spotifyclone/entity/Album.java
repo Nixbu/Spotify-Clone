@@ -45,6 +45,11 @@ public class Album {
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Song> songs = new HashSet<>();
 
+    // Add the uploadedBy field that the template is looking for
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by_id")
+    private User uploadedBy;
+
     // Default constructor
     public Album() {}
 
@@ -60,6 +65,12 @@ public class Album {
         if (releaseYear != null) {
             this.releaseDate = LocalDate.of(releaseYear, 1, 1);
         }
+    }
+
+    // Constructor with uploadedBy
+    public Album(String title, String artist, String genre, Integer releaseYear, String description, String coverImagePath, User uploadedBy) {
+        this(title, artist, genre, releaseYear, description, coverImagePath);
+        this.uploadedBy = uploadedBy;
     }
 
     // Getters and Setters
@@ -96,6 +107,10 @@ public class Album {
     public Set<Song> getSongs() { return songs; }
     public void setSongs(Set<Song> songs) { this.songs = songs; }
 
+    // Add getter and setter for uploadedBy
+    public User getUploadedBy() { return uploadedBy; }
+    public void setUploadedBy(User uploadedBy) { this.uploadedBy = uploadedBy; }
+
     // Helper methods
     public void addSong(Song song) {
         this.songs.add(song);
@@ -122,6 +137,7 @@ public class Album {
                 ", releaseYear=" + releaseYear +
                 ", description='" + description + '\'' +
                 ", coverImagePath='" + coverImagePath + '\'' +
+                ", uploadedBy=" + (uploadedBy != null ? uploadedBy.getUsername() : "null") +
                 '}';
     }
 }

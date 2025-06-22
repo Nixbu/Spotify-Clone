@@ -135,6 +135,7 @@ public class SongController {
         }
     }
 
+
     @GetMapping("/{id}")
     public String songDetails(@PathVariable Long id, Model model) {
         Optional<Song> songOpt = songService.findById(id);

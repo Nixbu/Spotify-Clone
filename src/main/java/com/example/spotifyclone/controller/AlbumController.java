@@ -104,5 +104,4 @@ public class AlbumController {
         }
         return "redirect:/albums?error=notfound";
     }
-    // TODO: Add methods for editing and deleting albums
 }
