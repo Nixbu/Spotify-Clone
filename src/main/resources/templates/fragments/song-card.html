@@ -21,12 +21,6 @@
             </a>
           </li>
           <li>
-            <button class="dropdown-item add-to-favorites-btn"
-                    th:data-song-id="${song.id}">
-              <i class="fas fa-heart me-2"></i>Add to Favorites
-            </button>
-          </li>
-          <li>
             <a class="dropdown-item" th:href="@{'/songs/' + ${song.id}}">
               <i class="fas fa-info-circle me-2"></i>Details
             </a>
@@ -58,7 +52,7 @@
                 th:data-song-id="${song.id}">
           <i class="fas fa-play"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+        <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
                 th:data-song-id="${song.id}">
           <i class="fas fa-heart"></i>
         </button>
@@ -106,7 +100,7 @@
         <a th:href="@{'/player/' + ${song.id}}" class="btn btn-sm btn-primary">
           <i class="fas fa-play"></i>
         </a>
-        <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+        <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
                 th:data-song-id="${song.id}">
           <i class="fas fa-heart"></i>
         </button>
@@ -153,7 +147,7 @@
       <a th:href="@{'/player/' + ${song.id}}" class="btn btn-sm btn-primary">
         <i class="fas fa-play"></i>
       </a>
-      <button type="button" class="btn btn-sm btn-outline-primary favorite-btn"
+      <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
               th:data-song-id="${song.id}">
         <i class="fas fa-heart"></i>
       </button>
@@ -164,50 +158,16 @@
 <!-- JavaScript for song card interactions -->
 <script th:fragment="song-card-js">
   document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
+
     // Play button functionality
     document.querySelectorAll('.play-btn').forEach(btn => {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
         const songId = this.dataset.songId;
         window.location.href = `/player/${songId}`;
-      });
-    });
-
-    // Favorite button functionality
-    document.querySelectorAll('.favorite-btn, .add-to-favorites-btn').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const songId = this.dataset.songId;
-        const button = this;
-
-        fetch(`/api/favorites/${songId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Add CSRF token if you're using Spring Security CSRF protection
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-                .then(response => {
-                  if (response.ok) {
-                    return response.text();
-                  }
-                  throw new Error('Network response was not ok');
-                })
-                .then(result => {
-                  console.log('Success:', result);
-                  // Update button appearance
-                  button.classList.add('btn-danger');
-                  button.classList.remove('btn-outline-primary', 'btn-outline-secondary');
-                  button.innerHTML = '<i class="fas fa-heart"></i>';
-
-                  // Show success message
-                  showToast('Song added to favorites!', 'success');
-                })
-                .catch(error => {
-                  console.error('Error:', error);
-                  showToast('Failed to add to favorites', 'error');
-                });
       });
     });
 
@@ -221,7 +181,65 @@
         showToast('Feature coming soon!', 'info');
       });
     });
+
+    // Load favorite status for all songs
+    loadFavoriteStatus();
   });
+
+  function updateFavoriteButtons(songId, isFavorite) {
+    const buttons = document.querySelectorAll(`[data-song-id="${songId}"]`);
+
+    buttons.forEach(button => {
+      if (button.classList.contains('favorite-btn') ||
+              button.classList.contains('favorite-dropdown-btn')) {
+
+        if (isFavorite) {
+          // Mark as favorite
+          button.classList.remove('btn-outline-secondary');
+          button.classList.add('btn-danger', 'favorited');
+
+          // Update dropdown text
+          if (button.classList.contains('favorite-dropdown-btn')) {
+            button.innerHTML = '<i class="fas fa-heart me-2"></i>Remove from Favorites';
+          }
+        } else {
+          // Mark as not favorite
+          button.classList.remove('btn-danger', 'favorited');
+          button.classList.add('btn-outline-secondary');
+
+          // Update dropdown text
+          if (button.classList.contains('favorite-dropdown-btn')) {
+            button.innerHTML = '<i class="fas fa-heart me-2"></i>Add to Favorites';
+          }
+        }
+      }
+    });
+  }
+
+  function loadFavoriteStatus() {
+    fetch('/api/favorites', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+            .then(response => {
+              if (response.ok) {
+                return response.json();
+              }
+              return [];
+            })
+            .then(favorites => {
+              // Update all favorite buttons based on user's favorites
+              favorites.forEach(favoriteSong => {
+                updateFavoriteButtons(favoriteSong.id, true);
+              });
+            })
+            .catch(error => {
+              console.error('Error loading favorite status:', error);
+            });
+  }
 
   function showToast(message, type = 'success') {
     // Simple toast notification
@@ -232,9 +250,9 @@
     toast.style.right = '20px';
     toast.style.zIndex = '9999';
     toast.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
 
     document.body.appendChild(toast);
 
@@ -243,5 +261,6 @@
     }, 3000);
   }
 </script>
+<script th:src="@{/js/favorites.js}"></script>
 </body>
 </html>

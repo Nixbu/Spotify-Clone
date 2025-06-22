@@ -97,7 +97,7 @@
                                         <a th:href="@{/player/{id}(id=${song.id})}" class="btn btn-sm btn-primary">Play</a>
                                         <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
                                                 th:data-song-id="${song.id}" sec:authorize="isAuthenticated()">
-                                            ♡
+                                            <i class="fas fa-heart"></i>
                                         </button>
                                         <div sec:authorize="isAuthenticated()" th:if="${song.uploadedBy?.username == #authentication.name}">
                                             <form th:action="@{/songs/{id}/delete(id=${song.id})}" method="post" style="display: inline;">
@@ -169,5 +169,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/favorites.js}"></script>
+
 </body>
 </html>
