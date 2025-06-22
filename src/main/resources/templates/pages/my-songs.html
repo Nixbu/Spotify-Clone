@@ -101,7 +101,9 @@
                     <i class="bi bi-info-circle"></i>
                   </a>
                   <button class="btn btn-outline-danger"
-                          th:onclick="'confirmDelete(' + ${song.id} + ', \'' + ${song.title} + '\')'"
+                          th:data-song-id="${song.id}"
+                          th:data-song-title="${song.title}"
+                          onclick="confirmDelete(this.dataset.songId, this.dataset.songTitle)"
                           title="Delete">
                     <i class="bi bi-trash"></i>
                   </button>
