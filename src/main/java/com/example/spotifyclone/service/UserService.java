@@ -86,4 +86,7 @@ public class UserService {
         }
         return false;
     }
+    public boolean isSongInFavorites(User user, Song song) {
+        return user.getFavoriteSongs().contains(song);
+    }
 }

@@ -117,8 +117,21 @@ public class ApiController {
         Optional<Song> songOpt = songService.findById(songId);
 
         if (userOpt.isPresent() && songOpt.isPresent()) {
-            userService.addFavoriteSong(userOpt.get(), songOpt.get());
-            return ResponseEntity.ok("Added to favorites");
+            User user = userOpt.get();
+            Song song = songOpt.get();
+
+            // Check if song is already in favorites
+            if (userService.isSongInFavorites(user, song)) {
+                return ResponseEntity.ok("Song already in favorites");
+            }
+
+            try {
+                userService.addFavoriteSong(user, song);
+                return ResponseEntity.ok("Added to favorites");
+            } catch (Exception e) {
+                // Handle any database constraint violations or other exceptions
+                return ResponseEntity.ok("Song already in favorites");
+            }
         }
 
         return ResponseEntity.badRequest().body("Failed to add to favorites");
