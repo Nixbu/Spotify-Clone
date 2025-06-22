@@ -36,14 +36,20 @@
           <!-- Action Buttons -->
           <div class="d-flex gap-2 mb-3">
             <button class="btn btn-success" th:if="${not #lists.isEmpty(playlist.songs)}"
-                    onclick="playPlaylist()" th:attr="data-playlist-id=${playlist.id}">
+                    th:onclick="'playPlaylist(' + ${playlist.id} + ')'" th:attr="data-playlist-id=${playlist.id}">
               <i class="fas fa-play me-2"></i>Play All
+            </button>
+            <button class="btn btn-outline-primary" th:if="${not #lists.isEmpty(playlist.songs)}" onclick="shufflePlaylist()">
+              <i class="fas fa-shuffle me-2"></i>Shuffle
             </button>
             <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSongModal">
               <i class="fas fa-plus me-2"></i>Add Songs
             </button>
             <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editPlaylistModal">
               <i class="fas fa-edit me-2"></i>Edit
+            </button>
+            <button class="btn btn-outline-secondary" onclick="sharePlaylist()">
+              <i class="fas fa-share me-2"></i>Share
             </button>
             <button type="button" class="btn btn-outline-danger delete-playlist-btn"
                     th:data-playlist-id="${playlist.id}"
@@ -79,7 +85,7 @@
                 <th>Artist</th>
                 <th>Album</th>
                 <th>Duration</th>
-                <th width="100">Actions</th>
+                <th width="150">Actions</th>
               </tr>
               </thead>
               <tbody>
@@ -87,28 +93,25 @@
                   th:attr="data-song-id=${song.id}">
                 <td class="text-muted" th:text="${iterStat.index + 1}">1</td>
                 <td>
-                  <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-success me-2 play-btn"
-                            th:onclick="'playSong(' + ${song.id} + ')'">
-                      <i class="fas fa-play"></i>
-                    </button>
-                    <div>
-                      <strong th:text="${song.title}">Song Title</strong>
-                    </div>
-                  </div>
+                  <strong th:text="${song.title}">Song Title</strong>
                 </td>
                 <td th:text="${song.artist}">Artist</td>
                 <td th:text="${song.album != null ? song.album.title : 'Single'}">Album</td>
                 <td th:text="${song.duration != null ? song.duration : '--:--'}">Duration</td>
                 <td>
-                  <button type="button" class="btn btn-sm btn-outline-danger remove-song-btn"
-                          th:data-song-id="${song.id}"
-                          th:data-song-title="${song.title}"
-                          th:data-song-artist="${song.artist}"
-                          data-bs-toggle="modal"
-                          data-bs-target="#removeSongModal">
-                    <i class="fas fa-trash"></i>
-                  </button>
+                  <div class="btn-group btn-group-sm">
+                    <a th:href="@{/player/{songId}(songId=${song.id}, playlistId=${playlist.id})}" class="btn btn-outline-success">
+                      <i class="fas fa-play"></i>
+                    </a>
+                    <button type="button" class="btn btn-outline-danger remove-song-btn"
+                            th:data-song-id="${song.id}"
+                            th:data-song-title="${song.title}"
+                            th:data-song-artist="${song.artist}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#removeSongModal">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
               </tbody>
@@ -333,6 +336,33 @@
       row.style.display = text.includes(searchTerm) ? '' : 'none';
     });
   });
+
+  // Playlist playback functions (matching album functionality)
+  function playPlaylist(playlistId) {
+    if (playlistId) {
+      // Redirects to the player, specifying which playlist to play.
+      // The controller will handle playing the first song automatically.
+      window.location.href = `/player?playlistId=${playlistId}`;
+    }
+  }
+
+  function shufflePlaylist() {
+    alert('Shuffle feature coming soon!');
+  }
+
+  function sharePlaylist() {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({
+        title: document.title,
+        url: url
+      });
+    } else {
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Playlist URL copied to clipboard!');
+      });
+    }
+  }
 </script>
 </body>
 </html>
