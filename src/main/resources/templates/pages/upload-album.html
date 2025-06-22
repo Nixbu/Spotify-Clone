@@ -9,23 +9,23 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
+<body class="bg-dark">
 <!-- Navigation -->
 <div th:replace="layout/navbar :: navbar"></div>
 
-<div class="container">
+<div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
-      <div class="card">
-        <div class="card-header">
-          <h3 class="card-title mb-0">Create New Album</h3>
+      <div class="card bg-dark border-success">
+        <div class="card-header bg-success text-dark">
+          <h3 class="card-title mb-0 fw-bold">Create New Album</h3>
         </div>
-        <div class="card-body">
+        <div class="card-body bg-dark text-light">
           <!-- Messages -->
-          <div th:if="${errorMsg}" class="alert alert-danger">
+          <div th:if="${errorMsg}" class="alert alert-danger border-danger">
             <span th:text="${errorMsg}"></span>
           </div>
-          <div th:if="${fileError}" class="alert alert-danger">
+          <div th:if="${fileError}" class="alert alert-danger border-danger">
             <span th:text="${fileError}"></span>
           </div>
 
@@ -33,8 +33,8 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="title" class="form-label">Album Title *</label>
-                  <input type="text" class="form-control" th:field="*{title}"
+                  <label for="title" class="form-label text-success fw-semibold">Album Title *</label>
+                  <input type="text" class="form-control bg-dark text-light border-success" th:field="*{title}"
                          th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''" required>
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}">
                     <span th:errors="*{title}"></span>
@@ -42,8 +42,8 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="artist" class="form-label">Artist *</label>
-                  <input type="text" class="form-control" th:field="*{artist}"
+                  <label for="artist" class="form-label text-success fw-semibold">Artist *</label>
+                  <input type="text" class="form-control bg-dark text-light border-success" th:field="*{artist}"
                          th:classappend="${#fields.hasErrors('artist')} ? 'is-invalid' : ''" required>
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('artist')}">
                     <span th:errors="*{artist}"></span>
@@ -51,46 +51,46 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="genre" class="form-label">Genre</label>
-                  <select class="form-select" th:field="*{genre}">
-                    <option value="">Select Genre</option>
-                    <option value="Pop">Pop</option>
-                    <option value="Rock">Rock</option>
-                    <option value="Hip Hop">Hip Hop</option>
-                    <option value="Electronic">Electronic</option>
-                    <option value="Jazz">Jazz</option>
-                    <option value="Classical">Classical</option>
-                    <option value="Country">Country</option>
-                    <option value="R&B">R&B</option>
+                  <label for="genre" class="form-label text-success fw-semibold">Genre</label>
+                  <select class="form-select bg-dark text-light border-success" th:field="*{genre}">
+                    <option value="" class="bg-dark text-light">Select Genre</option>
+                    <option value="Pop" class="bg-dark text-light">Pop</option>
+                    <option value="Rock" class="bg-dark text-light">Rock</option>
+                    <option value="Hip Hop" class="bg-dark text-light">Hip Hop</option>
+                    <option value="Electronic" class="bg-dark text-light">Electronic</option>
+                    <option value="Jazz" class="bg-dark text-light">Jazz</option>
+                    <option value="Classical" class="bg-dark text-light">Classical</option>
+                    <option value="Country" class="bg-dark text-light">Country</option>
+                    <option value="R&B" class="bg-dark text-light">R&B</option>
                   </select>
                 </div>
 
                 <div class="mb-3">
-                  <label for="releaseYear" class="form-label">Release Year</label>
-                  <input type="number" class="form-control" th:field="*{releaseYear}"
+                  <label for="releaseYear" class="form-label text-success fw-semibold">Release Year</label>
+                  <input type="number" class="form-control bg-dark text-light border-success" th:field="*{releaseYear}"
                          min="1900" max="2030">
                 </div>
 
                 <div class="mb-3">
-                  <label for="coverImageFile" class="form-label">Cover Image</label>
-                  <input type="file" class="form-control" name="coverImageFile"
+                  <label for="coverImageFile" class="form-label text-success fw-semibold">Cover Image</label>
+                  <input type="file" class="form-control bg-dark text-light border-success" name="coverImageFile"
                          accept="image/*">
-                  <div class="form-text">Upload JPEG, PNG, or GIF image</div>
+                  <div class="form-text text-success">Upload JPEG, PNG, or GIF image</div>
                 </div>
               </div>
 
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="description" class="form-label">Description</label>
-                  <textarea class="form-control" th:field="*{description}" rows="10"
+                  <label for="description" class="form-label text-success fw-semibold">Description</label>
+                  <textarea class="form-control bg-dark text-light border-success" th:field="*{description}" rows="10"
                             placeholder="Describe your album..."></textarea>
                 </div>
               </div>
             </div>
 
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-primary">Create Album</button>
-              <a th:href="@{/albums}" class="btn btn-secondary">Cancel</a>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="submit" class="btn btn-success px-4 py-2 fw-semibold">Create Album</button>
+              <a th:href="@{/albums}" class="btn btn-outline-success px-4 py-2 fw-semibold">Cancel</a>
             </div>
           </form>
         </div>

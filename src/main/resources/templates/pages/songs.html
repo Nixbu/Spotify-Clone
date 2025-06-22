@@ -96,7 +96,8 @@
                                     <div class="btn-group" role="group">
                                         <a th:href="@{/player/{id}(id=${song.id})}" class="btn btn-sm btn-primary">Play</a>
                                         <button type="button" class="btn btn-sm btn-outline-secondary favorite-btn"
-                                                th:data-song-id="${song.id}" sec:authorize="isAuthenticated()">
+                                                th:data-song-id="${song.id}" sec:authorize="isAuthenticated()"
+                                                title="Add to favorites">
                                             ♥
                                         </button>
                                         <div sec:authorize="isAuthenticated()" th:if="${song.uploadedBy?.username == #authentication.name}">
@@ -172,7 +173,17 @@
 <script th:src="@{/js/favorites.js}"></script>
 
 <script>
+    // Wait for everything to load before initializing favorites
     document.addEventListener('DOMContentLoaded', function() {
+        // Small delay to ensure all elements are rendered
+        setTimeout(() => {
+            initializeFavorites();
+        }, 100);
+    });
+
+    function initializeFavorites() {
+        console.log('Initializing favorites...'); // Debug log
+
         // Load user's favorites and mark them in the UI
         loadUserFavorites();
 
@@ -180,43 +191,72 @@
         document.querySelectorAll('.favorite-btn').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 toggleFavorite(this);
             });
         });
-    });
+    }
 
     function loadUserFavorites() {
         // Check if user is authenticated by looking for favorite buttons
         const favoriteButtons = document.querySelectorAll('.favorite-btn');
-        if (favoriteButtons.length === 0) return;
+        console.log(`Found ${favoriteButtons.length} favorite buttons`); // Debug log
+
+        if (favoriteButtons.length === 0) {
+            console.log('No favorite buttons found, user might not be authenticated');
+            return;
+        }
+
+        console.log('Fetching user favorites...'); // Debug log
 
         fetch('/api/favorites', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest'
-            }
+            },
+            credentials: 'same-origin' // Include cookies for authentication
         })
             .then(response => {
+                console.log('Favorites API response status:', response.status); // Debug log
                 if (response.ok) {
                     return response.json();
+                } else if (response.status === 401) {
+                    console.log('User not authenticated');
+                    return [];
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
                 }
-                return [];
             })
             .then(favorites => {
+                console.log('Received favorites:', favorites); // Debug log
+
+                if (!Array.isArray(favorites)) {
+                    console.warn('Favorites response is not an array:', favorites);
+                    return;
+                }
+
                 // Create a set of favorite song IDs for quick lookup
                 const favoriteIds = new Set(favorites.map(song => song.id.toString()));
+                console.log('Favorite IDs:', Array.from(favoriteIds)); // Debug log
 
                 // Mark favorite buttons as active for favorited songs
                 favoriteButtons.forEach(button => {
                     const songId = button.dataset.songId;
+                    console.log(`Checking song ID ${songId}...`); // Debug log
+
                     if (favoriteIds.has(songId)) {
+                        console.log(`Marking song ${songId} as favorite`); // Debug log
                         markAsFavorite(button);
+                    } else {
+                        // Ensure button is in default state
+                        markAsNotFavorite(button);
                     }
                 });
             })
             .catch(error => {
                 console.error('Error loading favorites:', error);
+                // Don't show user error for favorites loading, just log it
             });
     }
 
@@ -224,19 +264,27 @@
         button.classList.remove('btn-outline-secondary');
         button.classList.add('btn-danger');
         button.style.color = 'white';
+        button.style.backgroundColor = '#dc3545';
+        button.style.borderColor = '#dc3545';
         button.setAttribute('title', 'Remove from favorites');
+        console.log('Button marked as favorite'); // Debug log
     }
 
     function markAsNotFavorite(button) {
         button.classList.remove('btn-danger');
         button.classList.add('btn-outline-secondary');
         button.style.color = '';
+        button.style.backgroundColor = '';
+        button.style.borderColor = '';
         button.setAttribute('title', 'Add to favorites');
+        console.log('Button marked as not favorite'); // Debug log
     }
 
     function toggleFavorite(button) {
         const songId = button.dataset.songId;
         const isFavorite = button.classList.contains('btn-danger');
+
+        console.log(`Toggling favorite for song ${songId}, currently favorite: ${isFavorite}`); // Debug log
 
         const method = isFavorite ? 'DELETE' : 'POST';
         const url = `/api/favorites/${songId}`;
@@ -254,9 +302,13 @@
             headers[csrfHeader] = csrfToken;
         }
 
+        // Disable button during request
+        button.disabled = true;
+
         fetch(url, {
             method: method,
-            headers: headers
+            headers: headers,
+            credentials: 'same-origin'
         })
             .then(response => {
                 if (response.ok) {
@@ -269,12 +321,16 @@
                         showToast('Added to favorites', 'success');
                     }
                 } else {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`HTTP ${response.status}`);
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error toggling favorite:', error);
                 showToast('Failed to update favorites', 'error');
+            })
+            .finally(() => {
+                // Re-enable button
+                button.disabled = false;
             });
     }
 
@@ -287,17 +343,27 @@
         toast.style.zIndex = '9999';
         toast.style.minWidth = '250px';
         toast.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
         document.body.appendChild(toast);
 
+        // Auto-remove after 3 seconds
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.remove();
             }
         }, 3000);
     }
+
+    // Also initialize when navigating via browser history
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            setTimeout(() => {
+                initializeFavorites();
+            }, 100);
+        }
+    });
 </script>
 
 </body>
