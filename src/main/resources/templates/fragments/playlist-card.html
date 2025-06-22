@@ -7,30 +7,6 @@
       <div class="playlist-icon">
         <i class="bi bi-music-note-list display-4 text-primary"></i>
       </div>
-      <div class="dropdown">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                type="button"
-                data-bs-toggle="dropdown">
-          <i class="bi bi-three-dots"></i>
-        </button>
-        <ul class="dropdown-menu">
-          <li>
-            <button class="dropdown-item playlist-edit-btn"
-                    th:attr="data-playlist-id=${playlist.id},
-                             data-playlist-name=${playlist.name},
-                             data-playlist-description=${playlist.description ?: ''}">
-              <i class="bi bi-pencil"></i> Edit
-            </button>
-          </li>
-          <li>
-            <button class="dropdown-item text-danger playlist-delete-btn"
-                    th:attr="data-playlist-id=${playlist.id},
-                             data-playlist-name=${playlist.name}">
-              <i class="bi bi-trash"></i> Delete
-            </button>
-          </li>
-        </ul>
-      </div>
     </div>
 
     <h5 class="card-title" th:text="${playlist.name}">Playlist Name</h5>
