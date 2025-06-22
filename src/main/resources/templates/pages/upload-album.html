@@ -33,7 +33,7 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="title" class="form-label text-success fw-semibold">Album Title *</label>
+                  <label  class="form-label text-success fw-semibold">Album Title *</label>
                   <input type="text" class="form-control bg-dark text-light border-success" th:field="*{title}"
                          th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''" required>
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}">
@@ -42,7 +42,7 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="artist" class="form-label text-success fw-semibold">Artist *</label>
+                  <label  class="form-label text-success fw-semibold">Artist *</label>
                   <input type="text" class="form-control bg-dark text-light border-success" th:field="*{artist}"
                          th:classappend="${#fields.hasErrors('artist')} ? 'is-invalid' : ''" required>
                   <div class="invalid-feedback" th:if="${#fields.hasErrors('artist')}">
@@ -51,7 +51,7 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="genre" class="form-label text-success fw-semibold">Genre</label>
+                  <label  class="form-label text-success fw-semibold">Genre</label>
                   <select class="form-select bg-dark text-light border-success" th:field="*{genre}">
                     <option value="" class="bg-dark text-light">Select Genre</option>
                     <option value="Pop" class="bg-dark text-light">Pop</option>
@@ -66,13 +66,13 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="releaseYear" class="form-label text-success fw-semibold">Release Year</label>
+                  <label  class="form-label text-success fw-semibold">Release Year</label>
                   <input type="number" class="form-control bg-dark text-light border-success" th:field="*{releaseYear}"
                          min="1900" max="2030">
                 </div>
 
                 <div class="mb-3">
-                  <label for="coverImageFile" class="form-label text-success fw-semibold">Cover Image</label>
+                  <label  class="form-label text-success fw-semibold">Cover Image</label>
                   <input type="file" class="form-control bg-dark text-light border-success" name="coverImageFile"
                          accept="image/*">
                   <div class="form-text text-success">Upload JPEG, PNG, or GIF image</div>
@@ -81,7 +81,7 @@
 
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label for="description" class="form-label text-success fw-semibold">Description</label>
+                  <label  class="form-label text-success fw-semibold">Description</label>
                   <textarea class="form-control bg-dark text-light border-success" th:field="*{description}" rows="10"
                             placeholder="Describe your album..."></textarea>
                 </div>

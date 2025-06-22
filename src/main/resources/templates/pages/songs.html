@@ -158,8 +158,18 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Genre</label>
-                        <input type="text" class="form-control" th:field="*{genre}">
+                        <label  class="form-label text-success fw-semibold">Genre</label>
+                        <select class="form-select bg-dark text-light border-success" th:field="*{genre}">
+                            <option value="" class="bg-dark text-light">Select Genre</option>
+                            <option value="Pop" class="bg-dark text-light">Pop</option>
+                            <option value="Rock" class="bg-dark text-light">Rock</option>
+                            <option value="Hip Hop" class="bg-dark text-light">Hip Hop</option>
+                            <option value="Electronic" class="bg-dark text-light">Electronic</option>
+                            <option value="Jazz" class="bg-dark text-light">Jazz</option>
+                            <option value="Classical" class="bg-dark text-light">Classical</option>
+                            <option value="Country" class="bg-dark text-light">Country</option>
+                            <option value="R&B" class="bg-dark text-light">R&B</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">MP3 File *</label>
