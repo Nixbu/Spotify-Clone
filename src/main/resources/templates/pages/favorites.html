@@ -15,7 +15,6 @@
 <div class="container-fluid">
     <div class="row">
         <main class="col-12">
-            <!-- Header Section -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="d-flex align-items-center mb-3">
@@ -29,7 +28,6 @@
                             <p class="text-muted mb-0" th:text="${favoriteCount + ' songs'}">0 songs</p>
                         </div>
                     </div>
-                    <!-- Play All Button -->
                     <div th:if="${not #lists.isEmpty(songs)}">
                         <button class="btn btn-success btn-lg" onclick="playAllFavorites()">
                             <i class="fas fa-play me-2"></i>Play All
@@ -37,7 +35,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Songs List -->
             <div class="card" th:if="${not #lists.isEmpty(songs)}">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -59,7 +56,7 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <button class="btn btn-sm btn-outline-success me-2 play-btn"
-                                                th:onclick="'player(' + ${song.id} + ')'">
+                                                th:onclick="|window.location.href='@{/player/{songId}(songId=${song.id}, playFavorites=true)}'|">
                                             <i class="fas fa-play"></i>
                                         </button>
                                         <div>
@@ -89,7 +86,6 @@
                     </div>
                 </div>
             </div>
-            <!-- Empty State -->
             <div th:if="${#lists.isEmpty(songs)}" class="text-center py-5">
                 <i class="fas fa-heart fa-4x text-muted mb-4"></i>
                 <h3 class="text-muted">No favorite songs yet</h3>
@@ -102,33 +98,21 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/player.js}"></script>
 <script th:src="@{/js/favorites.js}"></script>
 <script>
     function playAllFavorites() {
-        const songs = [];
-        document.querySelectorAll('.song-row').forEach(row => {
-            songs.push({
-                id: row.getAttribute('data-song-id'),
-                title: row.querySelector('strong').textContent,
-                artist: row.querySelector('td:nth-child(3)').textContent
-            });
-        });
-        if (songs.length > 0) {
-            playPlaylist(songs);
-        }
+        // Redirects to the player controller, which will handle fetching favorites.
+        window.location.href = '/player?playFavorites=true';
     }
 
-    // Special handling for favorites page
+    // Special handling for favorites page: remove from favorites
     document.addEventListener('DOMContentLoaded', function() {
-        // Override the default behavior for favorites page
         document.querySelectorAll('.favorite-btn').forEach(button => {
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 const songId = this.dataset.songId;
                 const songRow = this.closest('tr');
 
-                // Get CSRF token
                 const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
                 const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
 
@@ -153,20 +137,15 @@
                     })
                     .then(result => {
                         console.log('Success:', result);
-
-                        // Remove the row from the table
                         songRow.remove();
 
-                        // Update the count
-                        const countElement = document.querySelector('.text-muted');
-                        const currentCount = parseInt(countElement.textContent);
-                        const newCount = currentCount - 1;
+                        const countElement = document.querySelector('p.text-muted');
+                        const currentCount = parseInt(countElement.textContent) || 0;
+                        const newCount = Math.max(0, currentCount - 1);
                         countElement.textContent = newCount + ' songs';
 
-                        // Show toast
                         showToast('Song removed from favorites!', 'success');
 
-                        // Show empty state if no songs left
                         if (document.querySelectorAll('.song-row').length === 0) {
                             setTimeout(() => {
                                 location.reload();
@@ -183,7 +162,7 @@
 
     function showToast(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info'} alert-dismissible fade show`;
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
         toast.style.position = 'fixed';
         toast.style.top = '20px';
         toast.style.right = '20px';

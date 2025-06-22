@@ -28,11 +28,11 @@ public class PlayerController {
     private final SongService songService;
     private final PlaylistService playlistService;
     private final UserService userService;
-    private final AlbumService albumService; // Added AlbumService dependency
+    private final AlbumService albumService;
 
     @Autowired
     public PlayerController(SongService songService, PlaylistService playlistService,
-                            UserService userService, AlbumService albumService) { // Injected AlbumService
+                            UserService userService, AlbumService albumService) {
         this.songService = songService;
         this.playlistService = playlistService;
         this.userService = userService;
@@ -45,13 +45,23 @@ public class PlayerController {
             @PathVariable(required = false) Long id,
             @RequestParam(value = "albumId", required = false) Long albumId,
             @RequestParam(value = "playlistId", required = false) Long playlistId,
+            // START OF CHANGES
+            @RequestParam(value = "playFavorites", required = false) boolean playFavorites,
+            // END OF CHANGES
             Authentication authentication,
             Model model) {
 
-        List<Song> songs;
+        List<Song> songs = new ArrayList<>();
         Optional<Song> currentSongOpt = (id != null) ? songService.findById(id) : Optional.empty();
         String pageTitle = "Music Player";
         String contextName = "All Songs";
+        Optional<User> userOpt = userService.findByUsername(authentication.getName());
+
+        if (userOpt.isEmpty()) {
+            return "redirect:/login"; // User must be logged in for most actions
+        }
+        User currentUser = userOpt.get();
+
 
         if (albumId != null) {
             // Case 1: Playing from an album
@@ -61,30 +71,32 @@ public class PlayerController {
                 pageTitle = "Playing: " + album.getTitle();
                 contextName = "Album: " + album.getTitle();
             }
-            // If "Play Album" was clicked (no specific song id), set the first song as current
-            if (currentSongOpt.isEmpty() && !songs.isEmpty()) {
-                currentSongOpt = Optional.of(songs.get(0));
-            }
-
+            // START OF CHANGES
+        } else if (playFavorites) {
+            // Case 2: Play all favorite songs
+            songs = songService.findFavoritesByUserId(currentUser.getId());
+            pageTitle = "Playing: Liked Songs";
+            contextName = "Your Liked Songs";
+            // END OF CHANGES
         } else if (playlistId != null) {
-            // Case 2: Playing from a playlist
-            // (Existing logic for playlists remains)
-            songs = new ArrayList<>(); // Initialize to avoid errors
-            Optional<User> userOpt = userService.findByUsername(authentication.getName());
-            if (userOpt.isPresent()) {
-                Playlist playlist = playlistService.findByIdWithSongs(playlistId);
-                if (playlist != null && playlist.getUser().getId().equals(userOpt.get().getId())) {
-                    songs = new ArrayList<>(playlist.getSongs());
-                    pageTitle = "Playing: " + playlist.getName();
-                    contextName = "Playlist: " + playlist.getName();
-                }
-            } else {
-                return "redirect:/login";
+            // Case 3: Playing from a playlist
+            Playlist playlist = playlistService.findByIdWithSongs(playlistId);
+            // Ensure the playlist belongs to the current user
+            if (playlist != null && playlist.getUser().getId().equals(currentUser.getId())) {
+                songs = new ArrayList<>(playlist.getSongs());
+                pageTitle = "Playing: " + playlist.getName();
+                contextName = "Playlist: " + playlist.getName();
             }
         } else {
-            // Case 3: Default - play all songs
+            // Case 4: Default - play all songs (or handle as an error if not desired)
             songs = songService.findAllSongsOrderByIdDesc();
         }
+
+        // If a playlist/album/favorites was requested without a specific song, play the first one
+        if (currentSongOpt.isEmpty() && !songs.isEmpty()) {
+            currentSongOpt = Optional.of(songs.get(0));
+        }
+
 
         model.addAttribute("songs", songs);
         model.addAttribute("currentSong", currentSongOpt.orElse(null));
