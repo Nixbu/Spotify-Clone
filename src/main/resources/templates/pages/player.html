@@ -214,6 +214,29 @@
                 currentSongIndex = index;
             }
         });
+        function initializeAutoPlay() {
+            // Check if we have a current song loaded (from server-side)
+            if (currentSongIndex !== -1 && audioPlayer && audioPlayer.src) {
+                // Small delay to ensure everything is loaded
+                setTimeout(() => {
+                    if (audioPlayer.readyState >= 2) { // HAVE_CURRENT_DATA or better
+                        audioPlayer.play().catch(error => {
+                            console.log('Auto-play prevented by browser:', error);
+                            // Browser prevented auto-play, this is normal
+                        });
+                    } else {
+                        // Wait for the audio to be ready
+                        audioPlayer.addEventListener('canplay', function() {
+                            audioPlayer.play().catch(error => {
+                                console.log('Auto-play prevented by browser:', error);
+                            });
+                        }, { once: true });
+                    }
+                }, 500);
+            }
+        }
+
+        initializeAutoPlay();
 
         // Play/Pause functionality
         if (playPauseBtn && audioPlayer) {
