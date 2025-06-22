@@ -48,7 +48,7 @@
         <a th:href="@{/player/{id}(id=${song.id})}" class="btn btn-success">
           <i class="bi bi-play-circle"></i> Play
         </a>
-        <button class="btn btn-outline-primary" th:onclick="'addToFavorites(' + ${song.id} + ')'">
+        <button class="btn btn-outline-primary favorite-btn" th:data-song-id="${song.id}">
           <i class="bi bi-heart"></i> Add to Favorites
         </button>
         <button class="btn btn-outline-secondary" onclick="shareSong()">
@@ -135,5 +135,6 @@
     }
   }
 </script>
+<script th:src="@{/js/favorites.js}"></script>
 </body>
 </html>
