@@ -34,11 +34,6 @@
       <a th:href="@{/playlists/{id}(id=${playlist.id})}" class="btn btn-outline-primary btn-sm">
         <i class="bi bi-arrow-right"></i> View
       </a>
-      <button class="btn btn-outline-success btn-sm playlist-play-btn"
-              th:if="${playlist.songs?.size() > 0}"
-              th:attr="data-playlist-id=${playlist.id}">
-        <i class="bi bi-play"></i> Play
-      </button>
     </div>
   </div>
 </div>
