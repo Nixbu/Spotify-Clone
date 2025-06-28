@@ -224,7 +224,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/main.js}"></script>
 <script th:src="@{/js/favorites.js}"></script>
 
 <script>
@@ -257,7 +256,6 @@
     }
 
     function initializeFavorites() {
-        console.log('Initializing favorites...'); // Debug log
 
         // Load user's favorites and mark them in the UI
         loadUserFavorites();
@@ -275,14 +273,12 @@
     function loadUserFavorites() {
         // Check if user is authenticated by looking for favorite buttons
         const favoriteButtons = document.querySelectorAll('.favorite-btn');
-        console.log(`Found ${favoriteButtons.length} favorite buttons`); // Debug log
 
         if (favoriteButtons.length === 0) {
             console.log('No favorite buttons found, user might not be authenticated');
             return;
         }
 
-        console.log('Fetching user favorites...'); // Debug log
 
         fetch('/api/favorites', {
             method: 'GET',
@@ -293,7 +289,7 @@
             credentials: 'same-origin' // Include cookies for authentication
         })
             .then(response => {
-                console.log('Favorites API response status:', response.status); // Debug log
+
                 if (response.ok) {
                     return response.json();
                 } else if (response.status === 401) {
@@ -304,7 +300,6 @@
                 }
             })
             .then(favorites => {
-                console.log('Received favorites:', favorites); // Debug log
 
                 if (!Array.isArray(favorites)) {
                     console.warn('Favorites response is not an array:', favorites);
@@ -313,15 +308,12 @@
 
                 // Create a set of favorite song IDs for quick lookup
                 const favoriteIds = new Set(favorites.map(song => song.id.toString()));
-                console.log('Favorite IDs:', Array.from(favoriteIds)); // Debug log
 
                 // Mark favorite buttons as active for favorited songs
                 favoriteButtons.forEach(button => {
                     const songId = button.dataset.songId;
-                    console.log(`Checking song ID ${songId}...`); // Debug log
 
                     if (favoriteIds.has(songId)) {
-                        console.log(`Marking song ${songId} as favorite`); // Debug log
                         markAsFavorite(button);
                     } else {
                         // Ensure button is in default state
@@ -342,7 +334,7 @@
         button.style.backgroundColor = '#dc3545';
         button.style.borderColor = '#dc3545';
         button.setAttribute('title', 'Remove from favorites');
-        console.log('Button marked as favorite'); // Debug log
+
     }
 
     function markAsNotFavorite(button) {
@@ -352,14 +344,12 @@
         button.style.backgroundColor = '';
         button.style.borderColor = '';
         button.setAttribute('title', 'Add to favorites');
-        console.log('Button marked as not favorite'); // Debug log
     }
 
     function toggleFavorite(button) {
         const songId = button.dataset.songId;
         const isFavorite = button.classList.contains('btn-danger');
 
-        console.log(`Toggling favorite for song ${songId}, currently favorite: ${isFavorite}`); // Debug log
 
         const method = isFavorite ? 'DELETE' : 'POST';
         const url = `/api/favorites/${songId}`;
