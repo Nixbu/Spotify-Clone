@@ -18,6 +18,13 @@ This project is a web application that emulates some of the core functionalities
 
 The application provides a rich set of features for a music streaming platform.
 
+## 🎬 Demo Video
+
+A short video presentation of the application:
+
+[▶️ Watch the demo video on Google Drive](https://drive.google.com/file/d/13UwqzLOIpav4RpqyUor9IAa-VL1oQcVU/view?usp=sharing)
+
+
 ### User Management
 * **Authentication:** Users can create an account, log in, and log out. The system uses Spring Security for handling authentication and authorization.
 * **Registration:** A secure registration form with validation for username, email, and password.
