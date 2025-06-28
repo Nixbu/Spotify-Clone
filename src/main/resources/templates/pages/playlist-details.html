@@ -39,9 +39,6 @@
                     th:onclick="'playPlaylist(' + ${playlist.id} + ')'" th:attr="data-playlist-id=${playlist.id}">
               <i class="fas fa-play me-2"></i>Play All
             </button>
-            <button class="btn btn-outline-primary" th:if="${not #lists.isEmpty(playlist.songs)}" onclick="shufflePlaylist()">
-              <i class="fas fa-shuffle me-2"></i>Shuffle
-            </button>
             <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addSongModal">
               <i class="fas fa-plus me-2"></i>Add Songs
             </button>
@@ -346,9 +343,6 @@
     }
   }
 
-  function shufflePlaylist() {
-    alert('Shuffle feature coming soon!');
-  }
 
   function sharePlaylist() {
     const url = window.location.href;
