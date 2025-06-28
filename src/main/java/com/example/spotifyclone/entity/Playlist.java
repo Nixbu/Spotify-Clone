@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Objects;
 
 @Entity
 @Table(name = "playlists")
@@ -19,12 +20,21 @@ public class Playlist {
 
     private String description;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    // Add the user_id field that your database expects
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
+    // Keep the many-to-many relationship for sharing functionality
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "playlist_user",
+            joinColumns = @JoinColumn(name = "playlist_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> users = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -40,11 +50,19 @@ public class Playlist {
     }
 
     // Constructor
+    public Playlist(String name, String description) {
+        this.name = name;
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Constructor with user
     public Playlist(String name, String description, User user) {
         this.name = name;
         this.description = description;
-        this.user = user;
         this.createdAt = LocalDateTime.now();
+        this.userId = user.getId();
+        this.addUser(user);
     }
 
     // Getters and Setters
@@ -60,8 +78,11 @@ public class Playlist {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
+
+    public Set<User> getUsers() { return users; }
+    public void setUsers(Set<User> users) { this.users = users; }
 
     public Set<Song> getSongs() { return songs; }
     public void setSongs(Set<Song> songs) { this.songs = songs; }
@@ -75,30 +96,26 @@ public class Playlist {
         this.songs.remove(song);
     }
 
-    public boolean containsSong(Song song) {
-        return this.songs.contains(song);
+    public void addUser(User user) {
+        this.users.add(user);
+        user.getPlaylists().add(this);
     }
 
-    public int getSongCount() {
-        return songs.size();
+    public void removeUser(User user) {
+        this.users.remove(user);
+        user.getPlaylists().remove(this);
     }
 
-    public int getTotalDuration() {
-        return songs.stream()
-                .mapToInt(song -> song.getDuration() != null ? song.getDuration() : 0)
-                .sum();
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Playlist playlist = (Playlist) o;
+        return Objects.equals(id, playlist.id);
     }
 
-    public String getFormattedTotalDuration() {
-        int totalSeconds = getTotalDuration();
-        int hours = totalSeconds / 3600;
-        int minutes = (totalSeconds % 3600) / 60;
-        int seconds = totalSeconds % 60;
-
-        if (hours > 0) {
-            return String.format("%d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            return String.format("%d:%02d", minutes, seconds);
-        }
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

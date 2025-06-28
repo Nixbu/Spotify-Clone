@@ -45,9 +45,7 @@ public class PlayerController {
             @PathVariable(required = false) Long id,
             @RequestParam(value = "albumId", required = false) Long albumId,
             @RequestParam(value = "playlistId", required = false) Long playlistId,
-            // START OF CHANGES
             @RequestParam(value = "playFavorites", required = false) boolean playFavorites,
-            // END OF CHANGES
             Authentication authentication,
             Model model) {
 
@@ -71,21 +69,21 @@ public class PlayerController {
                 pageTitle = "Playing: " + album.getTitle();
                 contextName = "Album: " + album.getTitle();
             }
-            // START OF CHANGES
         } else if (playFavorites) {
             // Case 2: Play all favorite songs
             songs = songService.findFavoritesByUserId(currentUser.getId());
             pageTitle = "Playing: Liked Songs";
             contextName = "Your Liked Songs";
-            // END OF CHANGES
         } else if (playlistId != null) {
-            // Case 3: Playing from a playlist
-            Playlist playlist = playlistService.findByIdWithSongs(playlistId);
-            // Ensure the playlist belongs to the current user
-            if (playlist != null && playlist.getUser().getId().equals(currentUser.getId())) {
-                songs = new ArrayList<>(playlist.getSongs());
-                pageTitle = "Playing: " + playlist.getName();
-                contextName = "Playlist: " + playlist.getName();
+            // Case 3: Playing from a playlist - CORRECTED LOGIC
+            // Ensure the user is a member of the playlist
+            if (playlistService.isUserMember(playlistId, currentUser.getId())) {
+                Playlist playlist = playlistService.findByIdWithSongsAndUsers(playlistId);
+                if (playlist != null) {
+                    songs = new ArrayList<>(playlist.getSongs());
+                    pageTitle = "Playing: " + playlist.getName();
+                    contextName = "Playlist: " + playlist.getName();
+                }
             }
         } else {
             // Case 4: Default - play all songs (or handle as an error if not desired)

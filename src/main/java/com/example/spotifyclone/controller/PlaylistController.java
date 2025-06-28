@@ -8,6 +8,7 @@ import com.example.spotifyclone.service.SongService;
 import com.example.spotifyclone.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,22 +38,14 @@ public class PlaylistController {
     public String playlistsPage(@RequestParam(value = "search", required = false) String search,
                                 Authentication authentication,
                                 Model model) {
-
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-
-        User user = userOpt.get();
+        User user = userService.findByUsername(authentication.getName()).orElseThrow();
         List<Playlist> playlists;
-
         if (search != null && !search.trim().isEmpty()) {
             playlists = playlistService.findByUserIdAndNameContaining(user.getId(), search);
             model.addAttribute("searchTerm", search);
         } else {
             playlists = playlistService.findByUserOrderByCreatedAt(user);
         }
-
         model.addAttribute("playlists", playlists);
         model.addAttribute("playlist", new Playlist());
         model.addAttribute("playlistCount", playlistService.countByUserId(user.getId()));
@@ -63,153 +56,121 @@ public class PlaylistController {
     public String createPlaylist(@Valid @ModelAttribute("playlist") Playlist playlist,
                                  BindingResult bindingResult,
                                  Authentication authentication,
-                                 Model model,
                                  RedirectAttributes redirectAttributes) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) return "redirect:/login";
 
         if (bindingResult.hasErrors()) {
-            Optional<User> userOpt = userService.findByUsername(authentication.getName());
-            if (userOpt.isPresent()) {
-                model.addAttribute("playlists", playlistService.findByUser(userOpt.get()));
-            }
-            return "pages/playlists";
+            redirectAttributes.addFlashAttribute("errorMsg", "Playlist name is required.");
+            return "redirect:/playlists";
         }
 
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-
-        playlist.setUser(userOpt.get());
-        playlistService.savePlaylist(playlist);
-
+        playlistService.createPlaylist(playlist.getName(), playlist.getDescription(), user);
         redirectAttributes.addFlashAttribute("successMsg", "Playlist created successfully!");
         return "redirect:/playlists";
     }
 
     @GetMapping("/{id}")
-    public String playlistDetails(@PathVariable Long id,
-                                  Authentication authentication,
-                                  Model model) {
+    public String playlistDetails(@PathVariable Long id, Authentication authentication, Model model, RedirectAttributes redirectAttributes) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) return "redirect:/login";
 
-        Playlist playlist = playlistService.findByIdWithSongs(id);
-        if (playlist == null) {
+        if (!playlistService.isUserMember(id, user.getId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "You do not have access to this playlist.");
             return "redirect:/playlists";
         }
 
-        // Check if user owns the playlist
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty() || !playlist.getUser().getId().equals(userOpt.get().getId())) {
-            return "redirect:/playlists";
-        }
-
+        Playlist playlist = playlistService.findByIdWithSongsAndUsers(id);
         model.addAttribute("playlist", playlist);
         model.addAttribute("allSongs", songService.findAllSongs());
         return "pages/playlist-details";
     }
 
     @PostMapping("/{id}/add-song")
-    public String addSongToPlaylist(@PathVariable Long id,
-                                    @RequestParam Long songId,
-                                    Authentication authentication,
-                                    RedirectAttributes redirectAttributes) {
+    public String addSongToPlaylist(@PathVariable Long id, @RequestParam Long songId, Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) return "redirect:/login";
 
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-
-        if (!playlistService.isPlaylistOwner(id, userOpt.get().getId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "You can only modify your own playlists");
+        if (!playlistService.isUserMember(id, user.getId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "You can only modify playlists you are a member of.");
             return "redirect:/playlists/" + id;
         }
 
         if (playlistService.playlistContainsSong(id, songId)) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Song is already in this playlist");
+            redirectAttributes.addFlashAttribute("errorMsg", "Song is already in this playlist.");
             return "redirect:/playlists/" + id;
         }
 
-        Optional<Song> songOpt = songService.findById(songId);
-        if (songOpt.isPresent()) {
-            playlistService.addSongToPlaylist(id, songOpt.get());
-            redirectAttributes.addFlashAttribute("successMsg", "Song added to playlist successfully!");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Song not found");
-        }
-
+        songService.findById(songId).ifPresentOrElse(
+                song -> {
+                    playlistService.addSongToPlaylist(id, song);
+                    redirectAttributes.addFlashAttribute("successMsg", "Song added successfully!");
+                },
+                () -> redirectAttributes.addFlashAttribute("errorMsg", "Song not found.")
+        );
         return "redirect:/playlists/" + id;
     }
 
-    @PostMapping("/{id}/remove-song")
-    public String removeSongFromPlaylist(@PathVariable Long id,
-                                         @RequestParam Long songId,
-                                         Authentication authentication,
-                                         RedirectAttributes redirectAttributes) {
-
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
+    @DeleteMapping("/{playlistId}/songs/{songId}")
+    public ResponseEntity<Void> removeSongFromPlaylist(@PathVariable Long playlistId, @PathVariable Long songId, Authentication authentication) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null || !playlistService.isUserMember(playlistId, user.getId())) {
+            return ResponseEntity.status(403).build(); // Forbidden
         }
 
-        if (!playlistService.isPlaylistOwner(id, userOpt.get().getId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "You can only modify your own playlists");
-            return "redirect:/playlists/" + id;
-        }
-
-        Optional<Song> songOpt = songService.findById(songId);
-        if (songOpt.isPresent()) {
-            playlistService.removeSongFromPlaylist(id, songOpt.get());
-            redirectAttributes.addFlashAttribute("successMsg", "Song removed from playlist successfully!");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "Song not found");
-        }
-
-        return "redirect:/playlists/" + id;
+        songService.findById(songId).ifPresent(song -> playlistService.removeSongFromPlaylist(playlistId, song));
+        return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/{id}/delete")
-    public String deletePlaylist(@PathVariable Long id,
-                                 Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
-
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePlaylist(@PathVariable Long id, Authentication authentication) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null || !playlistService.isUserMember(id, user.getId())) {
+            return ResponseEntity.status(403).build(); // Forbidden
         }
-
-        if (!playlistService.isPlaylistOwner(id, userOpt.get().getId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "You can only delete your own playlists");
-            return "redirect:/playlists";
-        }
-
-        playlistService.deletePlaylist(id);
-        redirectAttributes.addFlashAttribute("successMsg", "Playlist deleted successfully!");
-        return "redirect:/playlists";
+        playlistService.leaveOrDeletePlaylist(id, user);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/update")
-    public String updatePlaylist(@PathVariable Long id,
-                                 @RequestParam String name,
-                                 @RequestParam(required = false) String description,
-                                 Authentication authentication,
-                                 RedirectAttributes redirectAttributes) {
+    public String updatePlaylist(@PathVariable Long id, @RequestParam String name, @RequestParam(required = false) String description, Authentication authentication, RedirectAttributes redirectAttributes) {
+        User user = userService.findByUsername(authentication.getName()).orElse(null);
+        if (user == null) return "redirect:/login";
 
-        Optional<User> userOpt = userService.findByUsername(authentication.getName());
-        if (userOpt.isEmpty()) {
-            return "redirect:/login";
-        }
-
-        Optional<Playlist> playlistOpt = playlistService.findById(id);
-        if (playlistOpt.isEmpty() || !playlistOpt.get().getUser().getId().equals(userOpt.get().getId())) {
-            redirectAttributes.addFlashAttribute("errorMsg", "Playlist not found or access denied");
+        if (!playlistService.isUserMember(id, user.getId())) {
+            redirectAttributes.addFlashAttribute("errorMsg", "Access denied.");
             return "redirect:/playlists";
         }
 
-        Playlist playlist = playlistOpt.get();
+        Playlist playlist = playlistService.findById(id).orElseThrow();
         playlist.setName(name);
         playlist.setDescription(description);
         playlistService.updatePlaylist(playlist);
 
         redirectAttributes.addFlashAttribute("successMsg", "Playlist updated successfully!");
         return "redirect:/playlists/" + id;
+    }
+
+    @PostMapping("/{id}/share")
+    public ResponseEntity<String> sharePlaylist(@PathVariable Long id, @RequestParam String username, Authentication authentication) {
+        User currentUser = userService.findByUsername(authentication.getName()).orElse(null);
+        if (currentUser == null) return ResponseEntity.status(401).body("Unauthorized");
+
+        if (!playlistService.isUserMember(id, currentUser.getId())) {
+            return ResponseEntity.status(403).body("You can only share playlists you are a member of.");
+        }
+
+        Optional<User> userToShareWithOpt = userService.findByUsername(username);
+        if (userToShareWithOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("User not found.");
+        }
+        User userToShareWith = userToShareWithOpt.get();
+
+        if (playlistService.isUserMember(id, userToShareWith.getId())) {
+            return ResponseEntity.badRequest().body("User already has access to this playlist.");
+        }
+
+        playlistService.sharePlaylistWithUser(id, userToShareWith.getId(), currentUser.getId());
+        return ResponseEntity.ok("Playlist shared successfully with " + username);
     }
 }

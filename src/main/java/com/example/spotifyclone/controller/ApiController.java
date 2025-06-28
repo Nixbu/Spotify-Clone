@@ -1,13 +1,12 @@
 package com.example.spotifyclone.controller;
 
+import com.example.spotifyclone.dto.UserDTO;
 import com.example.spotifyclone.entity.Album;
 import com.example.spotifyclone.entity.Playlist;
 import com.example.spotifyclone.entity.Song;
 import com.example.spotifyclone.entity.User;
-import com.example.spotifyclone.service.AlbumService;
-import com.example.spotifyclone.service.PlaylistService;
-import com.example.spotifyclone.service.SongService;
-import com.example.spotifyclone.service.UserService;
+import com.example.spotifyclone.service.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -32,6 +32,32 @@ public class ApiController {
         this.albumService = albumService;
         this.playlistService = playlistService;
         this.userService = userService;
+    }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<List<UserDTO>> searchUsers(@RequestParam String username,
+                                                     @RequestParam Long playlistId,
+                                                     Authentication authentication) {
+        User currentUser = userService.findByUsername(authentication.getName()).orElse(null);
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Playlist playlist = playlistService.findByIdWithSongsAndUsers(playlistId);
+        if (playlist == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<User> users = userService.searchByUsername(username);
+
+        // Exclude current user and users already in the playlist
+        List<UserDTO> filteredUsers = users.stream()
+                .filter(user -> !user.getId().equals(currentUser.getId()))
+                .filter(user -> playlist.getUsers().stream().noneMatch(member -> member.getId().equals(user.getId())))
+                .map(user -> new UserDTO(user.getId(), user.getUsername()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(filteredUsers);
     }
 
     @GetMapping("/songs")
@@ -91,10 +117,17 @@ public class ApiController {
             return ResponseEntity.status(401).build();
         }
 
-        Playlist playlist = playlistService.findByIdWithSongs(id);
-        if (playlist == null || !playlist.getUser().getId().equals(userOpt.get().getId())) {
+        // Corrected authorization check
+        if (!playlistService.isUserMember(id, userOpt.get().getId())) {
             return ResponseEntity.notFound().build();
         }
+
+        // Corrected method call to fetch playlist with all necessary data
+        Playlist playlist = playlistService.findByIdWithSongsAndUsers(id);
+        if (playlist == null) {
+            return ResponseEntity.notFound().build();
+        }
+
 
         return ResponseEntity.ok(playlist);
     }

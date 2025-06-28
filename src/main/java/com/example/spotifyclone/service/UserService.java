@@ -33,6 +33,10 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public List<User> searchByUsername(String username) {
+        return userRepository.findByUsernameContainingIgnoreCase(username);
+    }
+
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
