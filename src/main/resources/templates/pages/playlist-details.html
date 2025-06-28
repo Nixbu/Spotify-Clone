@@ -88,7 +88,6 @@
                 <th>Title</th>
                 <th>Artist</th>
                 <th>Album</th>
-                <th>Duration</th>
                 <th width="150">Actions</th>
               </tr>
               </thead>
@@ -101,7 +100,6 @@
                 </td>
                 <td th:text="${song.artist}">Artist</td>
                 <td th:text="${song.album != null ? song.album.title : 'Single'}">Album</td>
-                <td th:text="${song.duration != null ? song.duration : '--:--'}">Duration</td>
                 <td>
                   <div class="btn-group btn-group-sm">
                     <a th:href="@{/player/{songId}(songId=${song.id}, playlistId=${playlist.id})}" class="btn btn-outline-success">
