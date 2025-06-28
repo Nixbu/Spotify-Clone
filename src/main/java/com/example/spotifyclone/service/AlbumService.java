@@ -79,14 +79,20 @@ public class AlbumService {
         if (albumOpt.isPresent()) {
             Album album = albumOpt.get();
             // Delete cover image file if exists
-            if (album.getCoverImagePath() != null) {
+            if (album.getCoverImagePath() != null && !album.getCoverImagePath().isEmpty()) {
                 try {
-                    Path imagePath = Paths.get(album.getCoverImagePath());
+                    // Path is relative, remove leading slash if present
+                    String imagePathString = album.getCoverImagePath();
+                    if (imagePathString.startsWith("/")) {
+                        imagePathString = imagePathString.substring(1);
+                    }
+                    Path imagePath = Paths.get(imagePathString);
                     Files.deleteIfExists(imagePath);
                 } catch (IOException e) {
-                    System.err.println("Failed to delete cover image: " + album.getCoverImagePath());
+                    System.err.println("Failed to delete cover image: " + album.getCoverImagePath() + ". Error: " + e.getMessage());
                 }
             }
+            // With CascadeType.ALL, deleting the album will also delete its songs.
             albumRepository.deleteById(id);
         }
     }
@@ -96,30 +102,26 @@ public class AlbumService {
             return null;
         }
 
-        // Validate file type
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IOException("Only image files are allowed");
         }
 
-        // Create upload directory if it doesn't exist
         Path uploadPath = Paths.get(uploadDir, "covers");
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
         }
 
-        // Generate unique filename
         String originalFilename = file.getOriginalFilename();
         String extension = originalFilename != null && originalFilename.contains(".")
                 ? originalFilename.substring(originalFilename.lastIndexOf("."))
                 : ".jpg";
         String uniqueFilename = UUID.randomUUID().toString() + extension;
 
-        // Save file
         Path filePath = uploadPath.resolve(uniqueFilename);
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return filePath.toString();
+        return "/uploads/covers/" + uniqueFilename;
     }
 
     public boolean isValidImageFile(MultipartFile file) {

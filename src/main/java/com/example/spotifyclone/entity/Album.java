@@ -23,16 +23,13 @@ public class Album {
     @Column(nullable = false)
     private String artist;
 
-    // Add genre field to match the form
     private String genre;
 
-    // Add release year field to match the form
     @Min(value = 1900, message = "Release year must be at least 1900")
     @Max(value = 2030, message = "Release year cannot be later than 2030")
     @Column(name = "release_year")
     private Integer releaseYear;
 
-    // Add description field to match the form
     @Column(columnDefinition = "TEXT")
     private String description;
 
@@ -42,10 +39,10 @@ public class Album {
     @Column(name = "cover_image_path")
     private String coverImagePath;
 
-    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // We add CascadeType.ALL and orphanRemoval=true to ensure songs are deleted with the album.
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<Song> songs = new HashSet<>();
 
-    // Add the uploadedBy field that the template is looking for
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_id")
     private User uploadedBy;
@@ -61,7 +58,6 @@ public class Album {
         this.releaseYear = releaseYear;
         this.description = description;
         this.coverImagePath = coverImagePath;
-        // Set release date based on release year if provided
         if (releaseYear != null) {
             this.releaseDate = LocalDate.of(releaseYear, 1, 1);
         }
@@ -89,7 +85,6 @@ public class Album {
     public Integer getReleaseYear() { return releaseYear; }
     public void setReleaseYear(Integer releaseYear) {
         this.releaseYear = releaseYear;
-        // Automatically update release date when release year is set
         if (releaseYear != null) {
             this.releaseDate = LocalDate.of(releaseYear, 1, 1);
         }
@@ -107,7 +102,6 @@ public class Album {
     public Set<Song> getSongs() { return songs; }
     public void setSongs(Set<Song> songs) { this.songs = songs; }
 
-    // Add getter and setter for uploadedBy
     public User getUploadedBy() { return uploadedBy; }
     public void setUploadedBy(User uploadedBy) { this.uploadedBy = uploadedBy; }
 
@@ -126,7 +120,6 @@ public class Album {
         return songs.size();
     }
 
-    // Override toString for debugging
     @Override
     public String toString() {
         return "Album{" +

@@ -5,6 +5,8 @@ import com.example.spotifyclone.entity.Song;
 import com.example.spotifyclone.service.AlbumService;
 import com.example.spotifyclone.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -39,7 +41,7 @@ public class AlbumController {
     public String listAlbums(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
         List<Album> albums;
         if (keyword != null && !keyword.isEmpty()) {
-            albums = albumService.searchAlbums(keyword); // [cite: 395]
+            albums = albumService.searchAlbums(keyword);
             model.addAttribute("keyword", keyword);
         } else {
             albums = albumService.findAllAlbums();
@@ -82,7 +84,6 @@ public class AlbumController {
                 album.setCoverImagePath("/uploads/covers/" + uniqueFilename);
             } catch (IOException e) {
                 model.addAttribute("errorMsg", "Failed to upload cover image: " + e.getMessage());
-                // Log the exception e.printStackTrace();
                 return "pages/upload-album";
             }
         }
@@ -103,5 +104,17 @@ public class AlbumController {
             return "pages/album-details";
         }
         return "redirect:/albums?error=notfound";
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseBody
+    public ResponseEntity<?> deleteAlbum(@PathVariable Long id) {
+        try {
+            albumService.deleteAlbum(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error deleting album: " + e.getMessage());
+        }
     }
 }
