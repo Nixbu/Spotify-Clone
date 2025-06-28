@@ -131,11 +131,12 @@ body {
 
 /* Tables */
 .table {
-    --bs-table-bg: #181818;
-    --bs-table-striped-bg: #282828;
-    --bs-table-hover-bg: #282828;
+    --bs-table-bg: #000000;
+    --bs-table-striped-bg: #252525;
+    --bs-table-hover-bg: #6e6e6e;
     --bs-table-color: #ffffff;
-    --bs-table-border-color: #282828;
+    --bs-table-border-color: #f6f6f6;
+    color: #ffffff; /* override any specific color directly */
 }
 
 thead {

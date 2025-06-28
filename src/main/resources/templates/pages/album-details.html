@@ -42,12 +42,6 @@
         <button class="btn btn-success" th:onclick="'playAlbum(' + ${album.id} + ')'" th:if="${!#lists.isEmpty(songs)}">
           <i class="bi bi-play-circle"></i> Play Album
         </button>
-        <button class="btn btn-outline-primary" onclick="shuffleAlbum()" th:if="${!#lists.isEmpty(songs)}">
-          <i class="bi bi-shuffle"></i> Shuffle
-        </button>
-        <button class="btn btn-outline-primary favorite-btn" th:data-album-id="${album.id}">
-          <i class="bi bi-heart"></i> Add to Favorites
-        </button>
         <button class="btn btn-outline-secondary" onclick="shareAlbum()">
           <i class="bi bi-share"></i> Share
         </button>
@@ -150,10 +144,6 @@
       // The controller will handle playing the first song automatically.
       window.location.href = `/player?albumId=${albumId}`;
     }
-  }
-
-  function shuffleAlbum() {
-    alert('Shuffle feature coming soon!');
   }
 
   function shareAlbum() {
