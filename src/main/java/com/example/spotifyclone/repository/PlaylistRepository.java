@@ -28,7 +28,6 @@ public interface PlaylistRepository extends JpaRepository<Playlist, Long> {
     @Query("SELECT COUNT(p) FROM Playlist p JOIN p.users u WHERE u.id = :userId")
     long countByUserId(@Param("userId") Long userId);
 
-    // Additional methods if you want to query by the direct user_id field
     List<Playlist> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     @Query("SELECT COUNT(p) FROM Playlist p WHERE p.userId = :userId")

@@ -39,7 +39,6 @@ public class PlayerController {
         this.albumService = albumService;
     }
 
-    // This single, unified method now handles all player loading cases
     @GetMapping(value = {"", "/{id}"})
     public String playerPage(
             @PathVariable(required = false) Long id,

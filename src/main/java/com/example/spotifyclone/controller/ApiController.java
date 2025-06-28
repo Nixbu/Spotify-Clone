@@ -117,12 +117,10 @@ public class ApiController {
             return ResponseEntity.status(401).build();
         }
 
-        // Corrected authorization check
         if (!playlistService.isUserMember(id, userOpt.get().getId())) {
             return ResponseEntity.notFound().build();
         }
 
-        // Corrected method call to fetch playlist with all necessary data
         Playlist playlist = playlistService.findByIdWithSongsAndUsers(id);
         if (playlist == null) {
             return ResponseEntity.notFound().build();

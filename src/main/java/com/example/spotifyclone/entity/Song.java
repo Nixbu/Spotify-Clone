@@ -42,7 +42,6 @@ public class Song {
     @JoinColumn(name = "uploaded_by_id", nullable = false)
     private User uploadedBy;
 
-    // Use @OnDelete to handle cascade deletion at the database level
     @ManyToMany(mappedBy = "songs", fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Playlist> playlists = new HashSet<>();

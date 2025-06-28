@@ -39,7 +39,7 @@ public class Album {
     @Column(name = "cover_image_path")
     private String coverImagePath;
 
-    // We add CascadeType.ALL and orphanRemoval=true to ensure songs are deleted with the album.
+    // CascadeType.ALL and orphanRemoval=true to ensure songs are deleted with the album.
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private Set<Song> songs = new HashSet<>();
 

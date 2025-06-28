@@ -23,11 +23,9 @@ public class Playlist {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // Add the user_id field that your database expects
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    // Keep the many-to-many relationship for sharing functionality
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "playlist_user",
