@@ -2,6 +2,16 @@
 
 This project is a web application that emulates some of the core functionalities of the popular music streaming service, Spotify. It is built using the Spring Boot framework for the backend and Thymeleaf with Bootstrap for the frontend. Users can register, upload their own music, create albums, manage playlists, and listen to music through a web-based player.
 
+## data and users ##
+we provided an sql file containing some data:
+sql file path - src/main/java/com.example.spotifyclone/data/ex4.sql
+in this database there are 2 users registered- 
+username - itay password 123456
+username - yosi password 123456
+those users share a playlist.
+we also uploaded a package called - uploades ,in this package we save the actual mp3 files ( in the datat base we save only the paths ).
+if you want to start from scratch ( meaning uploading your own mp3 files) you can just delete this package.
+
 ## Table of Contents
 1.  [General Functionality](#general-functionality)
 2.  [Screenshots](#screenshots)
