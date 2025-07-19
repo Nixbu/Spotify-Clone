@@ -1,4 +1,3 @@
-````markdown
 # Spotify Clone 🎵
 
 Spotify Clone is a web-based music streaming application that lets users upload, manage, play, and **share** their own music. Built using Java Spring Boot on the backend and Thymeleaf with Bootstrap on the frontend, it offers features like collaborative playlists, album management, and a fully functional web player.
@@ -68,21 +67,21 @@ This project replicates key features of a modern music streaming service.
 
 ## Technologies Used
 
-**Backend**  
-- Java 23  
-- Spring Boot  
-- Spring Security  
-- Spring Data JPA (Hibernate)  
-- Maven  
+**Backend**
+- Java 23
+- Spring Boot
+- Spring Security
+- Spring Data JPA (Hibernate)
+- Maven
 
-**Frontend**  
-- HTML5  
-- CSS3 (Bootstrap 5)  
-- JavaScript (ES6)  
-- Thymeleaf  
+**Frontend**
+- HTML5
+- CSS3 (Bootstrap 5)
+- JavaScript (ES6)
+- Thymeleaf
 
-**Database**  
-- MySQL  
+**Database**
+- MySQL
 
 ---
 
@@ -110,7 +109,7 @@ This project replicates key features of a modern music streaming service.
 ```bash
 mvn clean install
 mvn spring-boot:run
-````
+```
 
 Visit: `http://localhost:8080`
 
@@ -162,7 +161,4 @@ src/
 │       ├── templates/
 │       └── application.properties
 uploads/  <-- Stores uploaded media files
-```
-
-```
 ```
