@@ -18,10 +18,6 @@ Spotify Clone is a web-based music streaming application that lets users upload,
 
 This project replicates key features of a modern music streaming service.
 
-### 🎬 Demo Video
-
-[▶️ Watch the demo video](https://drive.google.com/file/d/13UwqzLOIpav4RpqyUor9IAa-VL1oQcVU/view?usp=sharing)
-
 ### User Management
 - **Authentication & Registration**: Secure user login, logout, and sign-up using Spring Security.
 
